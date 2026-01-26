@@ -7,7 +7,8 @@ const profiles = [
   {
     name: "Brendan Cleaves",
     role: "Writer / Director",
-    bio: "Profile loading…"
+    bio: "Profile loading…",
+    image: "/brendan-cleaves.png"
   },
   {
     name: "Howard Mills",

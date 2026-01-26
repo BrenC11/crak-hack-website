@@ -6,9 +6,15 @@ type ProfileCardProps = {
   name: string;
   role: string;
   bio: string;
+  image?: string;
 };
 
-export default function ProfileCard({ name, role, bio }: ProfileCardProps) {
+export default function ProfileCard({
+  name,
+  role,
+  bio,
+  image
+}: ProfileCardProps) {
   return (
     <motion.article
       whileHover={{ y: -4 }}
@@ -20,7 +26,18 @@ export default function ProfileCard({ name, role, bio }: ProfileCardProps) {
         <div className="absolute left-6 bottom-6 h-px w-20 bg-hack/40 shadow-hackGlow" />
       </div>
       <div className="relative z-10 flex flex-col gap-5">
-        <div className="h-40 w-full rounded-xl border border-hud/20 bg-black/60" />
+        <div className="relative h-40 w-full overflow-hidden rounded-xl border border-hud/20 bg-black/60">
+          {image ? (
+            <img
+              src={image}
+              alt={name}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="h-full w-full bg-black/50" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/40" />
+        </div>
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-hud/60">
             {role}
