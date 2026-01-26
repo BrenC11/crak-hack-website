@@ -24,6 +24,11 @@ const profiles = [
     name: "Johnny Vivash",
     role: "Lead Actor",
     bio: "Bio coming soon."
+  },
+  {
+    name: "Sanj Surati",
+    role: "Lead Support",
+    bio: "Profile loading…"
   }
 ];
 
