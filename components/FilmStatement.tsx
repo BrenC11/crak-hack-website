@@ -16,7 +16,7 @@ export default function FilmStatement() {
           Film Statement
         </p>
         <h2 className="mt-5 text-3xl font-semibold tracking-[0.08em] text-ice">
-          A dark comedy about control, shame, and the devices we trust.
+          A sci-fi horror comedy about control, shame, and the devices we trust.
         </h2>
         <div className="mt-6 space-y-6 text-lg leading-relaxed text-ice/70">
           <p>
