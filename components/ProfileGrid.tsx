@@ -31,7 +31,7 @@ const profiles = [
     bio: "Profile loading…"
   },
   {
-    name: "Joe Holwegger",
+    name: "Joe Holweger",
     role: "Music Composer",
     bio: "Bio coming soon."
   }
