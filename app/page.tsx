@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 
 export default function Home() {
   return (
-    <main className="bg-void text-ice">
+    <main className="ambient-still text-ice">
       <Hero />
       <Description />
       <TrailerPlaceholder />

@@ -5,7 +5,7 @@ export const metadata = {
 
 export default function ScreenerPage() {
   return (
-    <main className="min-h-screen bg-void-grid text-ice">
+    <main className="min-h-screen ambient-still text-ice">
       <div className="relative min-h-screen px-6 py-20">
         <div className="absolute inset-0 noise-overlay" aria-hidden="true" />
         <div className="relative z-10 mx-auto flex max-w-5xl flex-col gap-10">

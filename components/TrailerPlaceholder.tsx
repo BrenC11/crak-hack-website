@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 export default function TrailerPlaceholder() {
   return (
-    <section className="relative bg-void px-6 py-24">
+    <section className="relative bg-void/95 px-6 py-24">
       <motion.div
         initial={{ opacity: 0, y: 18 }}
         whileInView={{ opacity: 1, y: 0 }}
