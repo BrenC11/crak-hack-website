@@ -1,0 +1,11 @@
+<svg width="800" height="1100" viewBox="0 0 800 1100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="1100" fill="#050608"/>
+  <rect x="60" y="70" width="680" height="960" stroke="#45D9FF" stroke-opacity="0.25"/>
+  <path d="M120 240H680" stroke="#8BB7FF" stroke-opacity="0.35"/>
+  <path d="M160 560H640" stroke="#45D9FF" stroke-opacity="0.3"/>
+  <path d="M120 820H520" stroke="#45D9FF" stroke-opacity="0.2"/>
+  <text x="120" y="180" fill="#E3ECFF" font-family="Space Grotesk, Arial, sans-serif" font-size="56" letter-spacing="14">CRAK</text>
+  <text x="120" y="250" fill="#E3ECFF" font-family="Space Grotesk, Arial, sans-serif" font-size="56" letter-spacing="14">HACK</text>
+  <rect x="120" y="320" width="220" height="10" fill="#45D9FF" fill-opacity="0.3"/>
+  <rect x="120" y="910" width="320" height="8" fill="#8BB7FF" fill-opacity="0.25"/>
+</svg>

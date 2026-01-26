@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-void text-ice antialiased;
+  font-feature-settings: "salt" 1, "ss01" 1;
+}
+
+.bg-void-grid {
+  background-color: #050608;
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(69, 217, 255, 0.12), transparent 45%),
+    radial-gradient(circle at 80% 10%, rgba(139, 183, 255, 0.08), transparent 40%),
+    radial-gradient(circle at 50% 90%, rgba(69, 217, 255, 0.06), transparent 55%),
+    linear-gradient(180deg, rgba(5, 6, 8, 0.9) 0%, rgba(5, 6, 8, 0.75) 40%, rgba(5, 6, 8, 0.98) 100%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0, rgba(255, 255, 255, 0.02) 1px, transparent 1px, transparent 6px);
+}
+
+.hud-line {
+  @apply absolute bg-hud opacity-40;
+  box-shadow: 0 0 16px rgba(69, 217, 255, 0.4);
+}
+
+.poster-frame {
+  background-image: url('/poster-placeholder.svg');
+  background-size: cover;
+  background-position: center;
+}
+
+.stream-frame {
+  background-image:
+    linear-gradient(135deg, rgba(69, 217, 255, 0.08), transparent 40%),
+    linear-gradient(45deg, rgba(139, 183, 255, 0.08), transparent 50%);
+}
+
+.glass-border {
+  border: 1px solid rgba(69, 217, 255, 0.18);
+  box-shadow: 0 0 22px rgba(69, 217, 255, 0.12);
+}
+
+.noise-overlay {
+  background-image: url('/noise.svg');
+  mix-blend-mode: soft-light;
+  opacity: 0.18;
+}
