@@ -13,13 +13,13 @@ body {
 
 .ambient-still {
   background-image:
-    radial-gradient(circle at 20% 20%, rgba(69, 217, 255, 0.12), transparent 45%),
-    linear-gradient(180deg, rgba(5, 6, 8, 0.95) 0%, rgba(5, 6, 8, 0.9) 55%, rgba(5, 6, 8, 0.98) 100%),
+    radial-gradient(circle at 20% 20%, rgba(69, 217, 255, 0.18), transparent 48%),
+    linear-gradient(180deg, rgba(5, 6, 8, 0.88) 0%, rgba(5, 6, 8, 0.84) 55%, rgba(5, 6, 8, 0.95) 100%),
     url("/ambient-still.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  background-blend-mode: screen, normal, soft-light;
+  background-blend-mode: screen, normal, multiply;
 }
 
 .bg-void-grid {
