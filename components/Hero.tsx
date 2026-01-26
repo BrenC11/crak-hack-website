@@ -23,7 +23,7 @@ export default function Hero() {
           className="max-w-2xl"
         >
           <p className="text-xs uppercase tracking-[0.3em] text-hud/70">
-            Short Film
+            A Short Film by Brendan Cleaves
           </p>
           <h1 className="mt-4 text-5xl font-semibold tracking-[0.2em] text-ice sm:text-6xl lg:text-7xl">
             CRAK HACK
