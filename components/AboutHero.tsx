@@ -22,6 +22,15 @@ export default function AboutHero() {
         <p className="mt-6 max-w-2xl text-lg text-ice/70">
           A system file opened. Do not look away.
         </p>
+        <div className="mt-8">
+          <a
+            href="/"
+            className="inline-flex items-center gap-3 rounded-full border border-hud/40 bg-black/40 px-6 py-3 text-xs uppercase tracking-[0.3em] text-ice/70 transition duration-300 hover:border-hud/70 hover:text-ice"
+          >
+            Return to Main
+            <span className="h-1.5 w-1.5 rounded-full bg-hack/80 shadow-hackGlow" />
+          </a>
+        </div>
       </motion.div>
     </section>
   );
