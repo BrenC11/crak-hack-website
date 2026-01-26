@@ -6,12 +6,15 @@ module.exports = {
       colors: {
         void: "#050608",
         ice: "#dfe9ff",
-        hud: "#45d9ff",
-        ember: "#8bb7ff"
+        hud: "#3fc2ff",
+        ember: "#8bb7ff",
+        hack: "#ff2f3e",
+        emberHack: "#ff6b73"
       },
       boxShadow: {
-        glow: "0 0 30px rgba(69, 217, 255, 0.18)",
-        glowStrong: "0 0 60px rgba(69, 217, 255, 0.28)"
+        glow: "0 0 30px rgba(63, 194, 255, 0.18)",
+        glowStrong: "0 0 60px rgba(63, 194, 255, 0.28)",
+        hackGlow: "0 0 35px rgba(255, 47, 62, 0.24)"
       },
       keyframes: {
         hudPulse: {

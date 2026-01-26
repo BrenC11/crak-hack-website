@@ -9,9 +9,9 @@ export default function Hero() {
       <div className="absolute inset-0">
         <div className="hud-line left-8 top-12 h-px w-40 animate-hudPulse" />
         <div className="hud-line right-10 top-20 h-px w-28 animate-hudPulse" />
-        <div className="hud-line left-16 bottom-24 h-px w-44 animate-hudPulse" />
+        <div className="hud-line-hack left-16 bottom-24 h-px w-44 animate-hudPulse" />
         <div className="hud-line right-14 bottom-16 h-px w-32 animate-hudPulse" />
-        <div className="hud-line left-8 top-12 h-24 w-px animate-hudPulse" />
+        <div className="hud-line-hack left-8 top-12 h-24 w-px animate-hudPulse" />
         <div className="hud-line right-10 top-20 h-28 w-px animate-hudPulse" />
       </div>
 

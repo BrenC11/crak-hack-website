@@ -16,6 +16,7 @@ export default function TrailerPlaceholder() {
           <div className="absolute inset-0 opacity-30">
             <div className="absolute inset-x-0 top-0 h-px bg-hud/40" />
             <div className="absolute inset-x-0 bottom-0 h-px bg-hud/30" />
+            <div className="absolute left-10 top-8 h-px w-20 bg-hack/60 shadow-hackGlow" />
           </div>
           <div className="relative flex flex-col items-center justify-center gap-6 py-24">
             <div className="h-16 w-16 rounded-full border border-hud/50 shadow-glow" />

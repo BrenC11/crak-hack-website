@@ -35,6 +35,7 @@ export default function SocialLink() {
               <path d="M17.6 6.4h.01" />
             </svg>
           </span>
+          <span className="h-1.5 w-1.5 rounded-full bg-hack/80 shadow-hackGlow" />
           Instagram
         </a>
       </motion.div>
