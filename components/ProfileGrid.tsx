@@ -37,8 +37,7 @@ export default function ProfileGrid() {
     <section className="relative bg-void/95 px-6 py-24">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.4 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.9, ease: "easeOut" }}
         className="mx-auto max-w-6xl"
       >
@@ -53,7 +52,7 @@ export default function ProfileGrid() {
           </div>
           <div className="hidden h-px w-40 bg-hud/30 sm:block" />
         </div>
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {profiles.map((profile) => (
             <ProfileCard key={profile.name} {...profile} />
           ))}
