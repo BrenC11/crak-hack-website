@@ -26,7 +26,7 @@ export default function ProfileCard({
         <div className="absolute left-6 bottom-6 h-px w-20 bg-hack/40 shadow-hackGlow" />
       </div>
       <div className="relative z-10 flex flex-col gap-5">
-        <div className="relative h-40 w-full overflow-hidden rounded-xl border border-hud/20 bg-black/60">
+        <div className="relative aspect-square w-full overflow-hidden rounded-xl border border-hud/20 bg-black/60">
           {image ? (
             <img
               src={image}
