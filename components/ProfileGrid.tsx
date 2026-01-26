@@ -29,6 +29,11 @@ const profiles = [
     name: "Sanj Surati",
     role: "Lead Support",
     bio: "Profile loading…"
+  },
+  {
+    name: "Joe Holwegger",
+    role: "Music Composer",
+    bio: "Bio coming soon."
   }
 ];
 
