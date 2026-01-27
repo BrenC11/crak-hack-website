@@ -25,7 +25,7 @@ const profiles = [
   {
     name: "Johnny Vivash",
     role: "Lead Actor",
-    bio: "Bio coming soon.",
+    bio: "Johnny Vivash is originally from Dublin but trained in London were he is now based. He has strong theatre background, having toured nationally for a number of years working with various theatre companies in the U.K. He has worked on numerous award winning short films and Independent features in the UK, Europe & the U.S. He is an on going collaborator with numerous directors both as an actor and script developer.",
     image: "/johnny-vivash.png"
   },
   {
