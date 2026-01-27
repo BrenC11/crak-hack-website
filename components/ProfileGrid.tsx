@@ -37,7 +37,7 @@ const profiles = [
   {
     name: "Sanj Surati",
     role: "Lead Support",
-    bio: "Profile loading…",
+    bio: "London-born stand-up comedian, improviser, and actor known for his sharp wit and commanding screen presence. Trained in theatre under John Buckingham, he began his career as a rock musician before moving into acting. He has worked with directors including Sam Raimi, Stephen Frears, Guy Ritchie, and Chloé Zhao, and appeared alongside Pierce Brosnan, Elizabeth Olsen, and Freya Allan. A regular international improv performer, he is currently appearing in London’s West End in the award-winning Japanese improvisation show Batsu! and is a trustee of the English Touring Theatre.",
     image: "/sanj-surati.png"
   },
   {
