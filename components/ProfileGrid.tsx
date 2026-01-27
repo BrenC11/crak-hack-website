@@ -43,7 +43,7 @@ const profiles = [
   {
     name: "Jon Draper",
     role: "VFX Artist",
-    bio: "Profile loading…",
+    bio: "Founder of Stormy Studio and AIAnimation.com, with 20+ years’ experience in animation and creative production. After building Stormy Studio into an award-winning animation company delivering hundreds of projects for UK SMEs, FTSE 100 firms, and global brands, he is now focused on the future of animation. Through AIAnimation.com, he is developing an AI-powered platform enabling creators and brands to generate images, 3D models, animation, and video from a single, unified workflow, with growing adoption across the animation and advertising industries.",
     image: "/jon-draper.png"
   },
   {
