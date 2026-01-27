@@ -29,6 +29,12 @@ const profiles = [
     image: "/johnny-vivash.png"
   },
   {
+    name: "Amanda Lara Kay",
+    role: "Lead Actress",
+    bio: "Profile loading…",
+    image: "/amanda-lara-kay.png"
+  },
+  {
     name: "Sanj Surati",
     role: "Lead Support",
     bio: "Profile loading…"
