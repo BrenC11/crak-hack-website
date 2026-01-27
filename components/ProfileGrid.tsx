@@ -13,7 +13,7 @@ const profiles = [
   {
     name: "Howard Mills",
     role: "Director of Photography",
-    bio: "Bio coming soon.",
+    bio: "A London-based cinematographer working across narrative, documentary, and commercial projects, with a strong focus on visual storytelling and emotional impact. His debut feature Retreat is currently on the 2024 festival circuit, following successful runs for his short films 7-10, Tap Boy, and Aria. His promo People Let’s Dance for Public Service Broadcasting was nominated for an MVA. He is a member of BAFTA Crew and was recently featured in British Cinematography’s “Meet the New Wave”.",
     image: "/howard-mills.png"
   },
   {
