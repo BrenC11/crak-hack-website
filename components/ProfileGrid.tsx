@@ -13,7 +13,8 @@ const profiles = [
   {
     name: "Howard Mills",
     role: "Director of Photography",
-    bio: "Bio coming soon."
+    bio: "Bio coming soon.",
+    image: "/howard-mills.png"
   },
   {
     name: "Ryan McCarthy",
@@ -33,7 +34,8 @@ const profiles = [
   {
     name: "Joe Holweger",
     role: "Music Composer",
-    bio: "Bio coming soon."
+    bio: "Joe Holweger is a composer and actor from London. He has scored a number of short films in recent years, having come from a background as a touring professional musician, including working as a touring musician with Adam Ant. He has also written songs for many well-known pop artists, and composed music for various TV shows, documentaries, and advertisements.",
+    image: "/joe-holweger.png"
   }
 ];
 
