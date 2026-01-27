@@ -19,7 +19,7 @@ const profiles = [
   {
     name: "Ryan McCarthy",
     role: "Art Director",
-    bio: "Profile loading…",
+    bio: "Trained in Architecture (BA, 2013) and Critical Design (MA, 2015), with a strong focus on experiential design and the emotional journey through space. Since 2015, he has worked across commercials and television, progressing from Art Department Assistant to Set Designer and Art Director on projects for brands including Virgin Media, Magnum, and Pizza Express, and networks such as Netflix, Syfy, and ITV. His work is driven by a belief in growth, craft, and shaping meaningful spatial narratives for contemporary audiences.",
     image: "/ryan-mccarthy.png"
   },
   {
