@@ -37,7 +37,14 @@ const profiles = [
   {
     name: "Sanj Surati",
     role: "Lead Support",
-    bio: "Profile loading…"
+    bio: "Profile loading…",
+    image: "/sanj-surati.png"
+  },
+  {
+    name: "Jon Draper",
+    role: "VFX Artist",
+    bio: "Profile loading…",
+    image: "/jon-draper.png"
   },
   {
     name: "Joe Holweger",
