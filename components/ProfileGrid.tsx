@@ -24,7 +24,8 @@ const profiles = [
   {
     name: "Johnny Vivash",
     role: "Lead Actor",
-    bio: "Bio coming soon."
+    bio: "Bio coming soon.",
+    image: "/johnny-vivash.png"
   },
   {
     name: "Sanj Surati",
