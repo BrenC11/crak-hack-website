@@ -19,7 +19,8 @@ const profiles = [
   {
     name: "Ryan McCarthy",
     role: "Art Director",
-    bio: "Profile loading…"
+    bio: "Profile loading…",
+    image: "/ryan-mccarthy.png"
   },
   {
     name: "Johnny Vivash",
