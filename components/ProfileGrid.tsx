@@ -31,7 +31,7 @@ const profiles = [
   {
     name: "Amanda Lara Kay",
     role: "Lead Actress",
-    bio: "Profile loading…",
+    bio: "Born in Johannesburg, South Africa, Amanda Kay trained at the National School of the Arts before moving to New York City to study at the Alvin Ailey American Dance Center. She spent over a decade working internationally as a professional dancer across the US, Australia, Asia, Europe, and the Middle East, performing Off-Broadway, in touring Broadway productions, modern dance and ballet companies, and as a solo guest artist. Now based in London, she works primarily as an actor in theatre and film, with her practice also spanning dance, modelling, and TV presenting.",
     image: "/amanda-lara-kay.png"
   },
   {
