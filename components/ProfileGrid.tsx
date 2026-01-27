@@ -25,7 +25,7 @@ const profiles = [
   {
     name: "Johnny Vivash",
     role: "Lead Actor",
-    bio: "Johnny Vivash is originally from Dublin but trained in London were he is now based. He has strong theatre background, having toured nationally for a number of years working with various theatre companies in the U.K. He has worked on numerous award winning short films and Independent features in the UK, Europe & the U.S. He is an on going collaborator with numerous directors both as an actor and script developer.",
+    bio: "Is an award winning actor, horror indie scene regular, who predominately works on genre shorts & Independent horror features both in the UK and Europe, (Best Actor at Dead Northern Film Fest, Starburst Film Fest & Birmingham Film Festival , as well as numerous  nominations at festivals in the US) He is an on going collaborator with a multitude of directors as an Actor, Producer and consultant on festival strategies. When he’s not attending film festivals near and far, or getting murdered in numerous and imaginative ways on screen, he can be found entertaining the family cat Wilfred on his days off.",
     image: "/johnny-vivash.png"
   },
   {

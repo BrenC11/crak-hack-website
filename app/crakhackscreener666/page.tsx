@@ -41,6 +41,15 @@ export default function ScreenerPage() {
           <div className="text-xs uppercase tracking-[0.3em] text-ice/40">
             Do not share this link.
           </div>
+          <div>
+            <a
+              href="/about"
+              className="inline-flex items-center gap-3 rounded-full border border-hud/30 bg-black/40 px-6 py-3 text-xs uppercase tracking-[0.3em] text-ice/70 transition duration-300 hover:border-hud/60 hover:text-ice"
+            >
+              About
+              <span className="h-1.5 w-1.5 rounded-full bg-hack/80 shadow-hackGlow" />
+            </a>
+          </div>
         </div>
       </div>
     </main>
