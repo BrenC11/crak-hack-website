@@ -2,6 +2,14 @@ import { NextResponse } from "next/server";
 
 const COOKIE_NAME = "crakhack_screener";
 
+export async function GET(request: Request) {
+  // If someone navigates here directly, send them to the login page
+  // instead of showing a 405 Method Not Allowed.
+  const url = new URL("/crakhackscreener666/login", request.url);
+  url.searchParams.set("next", "/crakhackscreener666");
+  return NextResponse.redirect(url);
+}
+
 export async function POST(request: Request) {
   const formData = await request.formData();
   const password = String(formData.get("password") ?? "");
