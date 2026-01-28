@@ -45,7 +45,7 @@ export const CF_ANALYTICS_QUERY = `
         visits24h: httpRequestsAdaptiveGroups(
           limit: 200
           orderBy: [datetimeHour_ASC]
-          groupBy: [datetimeHour]
+          dimensions: [datetimeHour]
           filter: {
             datetime_geq: $start24h
             datetime_leq: $end24h
@@ -64,7 +64,7 @@ export const CF_ANALYTICS_QUERY = `
         visits7d: httpRequestsAdaptiveGroups(
           limit: 200
           orderBy: [datetimeDay_ASC]
-          groupBy: [datetimeDay]
+          dimensions: [datetimeDay]
           filter: {
             datetime_geq: $start7d
             datetime_leq: $end7d
@@ -83,7 +83,7 @@ export const CF_ANALYTICS_QUERY = `
         countries: httpRequestsAdaptiveGroups(
           limit: 50
           orderBy: [sum_visits_DESC]
-          groupBy: [clientCountryName]
+          dimensions: [clientCountryName]
           filter: {
             datetime_geq: $start7d
             datetime_leq: $end7d
@@ -102,7 +102,7 @@ export const CF_ANALYTICS_QUERY = `
         cities: httpRequestsAdaptiveGroups(
           limit: 50
           orderBy: [sum_visits_DESC]
-          groupBy: [clientCityName]
+          dimensions: [clientCityName]
           filter: {
             datetime_geq: $start7d
             datetime_leq: $end7d
@@ -121,7 +121,7 @@ export const CF_ANALYTICS_QUERY = `
         browsers: httpRequestsAdaptiveGroups(
           limit: 20
           orderBy: [sum_visits_DESC]
-          groupBy: [clientBrowserName]
+          dimensions: [clientBrowserName]
           filter: {
             datetime_geq: $start7d
             datetime_leq: $end7d
@@ -140,7 +140,7 @@ export const CF_ANALYTICS_QUERY = `
         operatingSystems: httpRequestsAdaptiveGroups(
           limit: 20
           orderBy: [sum_visits_DESC]
-          groupBy: [clientOSName]
+          dimensions: [clientOSName]
           filter: {
             datetime_geq: $start7d
             datetime_leq: $end7d
