@@ -21,7 +21,7 @@ export default function ScreenerLogin({
             Enter the access key to proceed.
           </p>
           <form
-            action="/crakhackscreener666/login"
+            action="/crakhackscreener666/auth"
             method="POST"
             className="mt-6 flex flex-col gap-4"
           >

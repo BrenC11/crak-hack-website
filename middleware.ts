@@ -14,6 +14,7 @@ export function middleware(request: NextRequest) {
 
   const isScreenerPath = pathname.startsWith("/crakhackscreener666");
   const isLoginPath = pathname.startsWith("/crakhackscreener666/login");
+  const isAuthPath = pathname.startsWith("/crakhackscreener666/auth");
 
   if (isScreenerHost(host) && (pathname === "/" || pathname === "")) {
     const url = request.nextUrl.clone();
@@ -27,7 +28,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.rewrite(url);
   }
 
-  if (!isScreenerPath || isLoginPath) {
+  if (!isScreenerPath || isLoginPath || isAuthPath) {
     return NextResponse.next();
   }
 
