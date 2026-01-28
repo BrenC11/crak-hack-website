@@ -30,23 +30,17 @@ export function middleware(request: NextRequest) {
   }
 
   const hostIsScreener = isScreenerHost(host);
-  const needsScreenerRewrite =
-    hostIsScreener &&
-    (pathname === "/" || !pathname.startsWith("/crakhackscreener666"));
-
-  const effectivePath =
-    needsScreenerRewrite && pathname !== "/"
-      ? `/crakhackscreener666${pathname}`
-      : needsScreenerRewrite
-        ? "/crakhackscreener666"
-        : pathname;
+  const needsScreenerRewrite = hostIsScreener && pathname === "/";
+  const effectivePath = needsScreenerRewrite
+    ? "/crakhackscreener666"
+    : pathname;
 
   const isScreenerPath = effectivePath.startsWith("/crakhackscreener666");
   const isLoginPath = effectivePath.startsWith("/crakhackscreener666/login");
   const isAuthPath = effectivePath.startsWith("/crakhackscreener666/auth");
 
   if (!isScreenerPath || isLoginPath || isAuthPath) {
-    if (hostIsScreener && needsScreenerRewrite) {
+    if (needsScreenerRewrite) {
       const url = request.nextUrl.clone();
       url.pathname = effectivePath;
       return NextResponse.rewrite(url);
