@@ -6,23 +6,38 @@ type IntrospectionTypeFieldsResponse = {
   data?: {
     __type?: {
       name?: string;
-      fields?: Array<{ name: string }>;
+      fields?: Array<{
+        name: string;
+        type?: {
+          kind?: string;
+          name?: string | null;
+          ofType?: any;
+        };
+      }>;
     } | null;
   };
   errors?: Array<{ message: string }>;
 };
 
-const DIMENSIONS_TYPE_CANDIDATES = [
-  "HttpRequestsAdaptiveGroupDimensions",
-  "httpRequestsAdaptiveGroupDimensions",
-  "HTTPRequestsAdaptiveGroupDimensions",
-  "HttpRequestsAdaptiveGroupDimension",
-  "httpRequestsAdaptiveGroupDimension"
-] as const;
-
 const TIME_DIMENSION_PREFERENCE = ["datetimeHour", "datetimeMinute"] as const;
 
 let dimensionsFieldSetPromise: Promise<Set<string>> | null = null;
+
+type IntrospectionTypeRef = {
+  kind?: string;
+  name?: string | null;
+  ofType?: IntrospectionTypeRef | null;
+};
+
+function unwrapNamedType(typeRef: IntrospectionTypeRef | null | undefined): string | null {
+  let current: IntrospectionTypeRef | null | undefined = typeRef;
+  for (let i = 0; i < 10; i++) {
+    if (!current) return null;
+    if (current.name) return current.name;
+    current = current.ofType;
+  }
+  return null;
+}
 
 function pickDimension(
   supported: Set<string>,
@@ -262,16 +277,38 @@ async function fetchAnalytics(
 }
 
 async function fetchDimensionsFieldSet(token: string) {
-  const introspectionQuery = `
+  const typeQuery = `
     query TypeFields($name: String!) {
       __type(name: $name) {
         name
-        fields { name }
+        fields {
+          name
+          type {
+            kind
+            name
+            ofType {
+              kind
+              name
+              ofType {
+                kind
+                name
+                ofType {
+                  kind
+                  name
+                  ofType {
+                    kind
+                    name
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   `;
 
-  for (const typeName of DIMENSIONS_TYPE_CANDIDATES) {
+  async function fetchType(name: string) {
     const response = await fetch(GRAPHQL_ENDPOINT, {
       method: "POST",
       headers: {
@@ -279,18 +316,35 @@ async function fetchDimensionsFieldSet(token: string) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        query: introspectionQuery,
-        variables: { name: typeName }
+        query: typeQuery,
+        variables: { name }
       }),
       cache: "no-store"
     });
 
-    if (!response.ok) continue;
+    if (!response.ok) return null;
     const payload = (await response.json()) as IntrospectionTypeFieldsResponse;
-    if (payload.errors?.length) continue;
-    const fields = payload.data?.__type?.fields;
-    if (fields?.length) {
-      return new Set(fields.map((f) => f.name));
+    if (payload.errors?.length) return null;
+    return payload.data?.__type ?? null;
+  }
+
+  // Resolve the dimensions type by walking:
+  // Zone.httpRequestsAdaptiveGroups -> <group type> -> dimensions -> <dimensions type> -> fields.
+  const zoneType = await fetchType("Zone");
+  const httpField = zoneType?.fields?.find((f) => f.name === "httpRequestsAdaptiveGroups");
+  const groupTypeName = unwrapNamedType(httpField?.type as IntrospectionTypeRef | undefined);
+  if (groupTypeName) {
+    const groupType = await fetchType(groupTypeName);
+    const dimensionsField = groupType?.fields?.find((f) => f.name === "dimensions");
+    const dimensionsTypeName = unwrapNamedType(
+      dimensionsField?.type as IntrospectionTypeRef | undefined
+    );
+    if (dimensionsTypeName) {
+      const dimensionsType = await fetchType(dimensionsTypeName);
+      const fields = dimensionsType?.fields ?? [];
+      if (fields.length) {
+        return new Set(fields.map((f) => f.name));
+      }
     }
   }
 
