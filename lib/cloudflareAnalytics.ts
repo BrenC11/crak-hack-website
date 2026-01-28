@@ -202,10 +202,37 @@ function getEnv(name: string): string {
   return value;
 }
 
+function getOptionalEnv(name: string): string | undefined {
+  const value = process.env[name];
+  return value && value.length > 0 ? value : undefined;
+}
+
 function isoDaysAgo(days: number) {
   const now = new Date();
   const then = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
   return then.toISOString();
+}
+
+function inferMainHostFrom(host: string) {
+  const normalized = host.trim().toLowerCase();
+  return normalized.startsWith("screener.")
+    ? normalized.slice("screener.".length)
+    : normalized;
+}
+
+export type AnalyticsTarget = "main" | "screener";
+
+function resolveAnalyticsHost(target: AnalyticsTarget) {
+  // Backwards compatible: CLOUDFLARE_HOSTNAME historically pointed at the screener host.
+  const configured = getEnv("CLOUDFLARE_HOSTNAME");
+  const screener =
+    getOptionalEnv("CLOUDFLARE_HOSTNAME_SCREENER") ?? configured;
+  const main =
+    getOptionalEnv("CLOUDFLARE_HOSTNAME_MAIN") ?? inferMainHostFrom(screener);
+
+  if (target === "main") return main;
+  // Ensure we end up with a screener.* hostname.
+  return screener.startsWith("screener.") ? screener : `screener.${main}`;
 }
 
 async function fetchAnalytics(
@@ -278,10 +305,10 @@ async function getDimensionsFieldSet(token: string) {
   return dimensionsFieldSetPromise;
 }
 
-export async function getScreenerAnalytics() {
+export async function getScreenerAnalytics(target: AnalyticsTarget = "screener") {
   const token = getEnv("CLOUDFLARE_API_TOKEN");
   const zoneId = getEnv("CLOUDFLARE_ZONE_ID");
-  const host = getEnv("CLOUDFLARE_HOSTNAME");
+  const host = resolveAnalyticsHost(target);
 
   const dims = await getDimensionsFieldSet(token);
   const timeDimension =
@@ -491,7 +518,9 @@ export async function getScreenerAnalytics() {
         city: cityDimension,
         browser: browserDimension,
         os: osDimension
-      }
+      },
+      target,
+      host
     }
   };
 }

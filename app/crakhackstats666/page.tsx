@@ -1,4 +1,4 @@
-import { getScreenerAnalytics } from "@/lib/cloudflareAnalytics";
+import { getScreenerAnalytics, type AnalyticsTarget } from "@/lib/cloudflareAnalytics";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -48,12 +48,21 @@ function renderTable(
   );
 }
 
-export default async function StatsPage() {
+export default async function StatsPage({
+  searchParams
+}: {
+  searchParams?: Record<string, string | string[] | undefined>;
+}) {
+  const selected =
+    (typeof searchParams?.site === "string" ? searchParams.site : undefined) ??
+    "screener";
+  const target: AnalyticsTarget = selected === "main" ? "main" : "screener";
+
   let data: Awaited<ReturnType<typeof getScreenerAnalytics>> | null = null;
   let error: string | null = null;
 
   try {
-    data = await getScreenerAnalytics();
+    data = await getScreenerAnalytics(target);
   } catch (err) {
     error =
       err instanceof Error ? err.message : "Unable to load analytics data.";
@@ -109,9 +118,33 @@ export default async function StatsPage() {
             Private Telemetry
           </p>
           <h1 className="mt-4 text-4xl font-semibold tracking-[0.2em] text-ice sm:text-5xl">
-            SCREENER SIGNALS
+            {target === "main" ? "SITE SIGNALS" : "SCREENER SIGNALS"}
           </h1>
           <div className="mt-6 h-px w-40 bg-hud/40 shadow-glow" />
+          <div className="mt-6 flex flex-wrap gap-3 text-xs uppercase tracking-[0.25em]">
+            <a
+              href="/crakhackstats666?site=main"
+              className={[
+                "rounded-full border px-4 py-2 transition duration-300",
+                target === "main"
+                  ? "border-hud/60 bg-black/60 text-ice"
+                  : "border-hud/25 bg-black/20 text-ice/60 hover:border-hud/50 hover:text-ice"
+              ].join(" ")}
+            >
+              Main site
+            </a>
+            <a
+              href="/crakhackstats666?site=screener"
+              className={[
+                "rounded-full border px-4 py-2 transition duration-300",
+                target === "screener"
+                  ? "border-hud/60 bg-black/60 text-ice"
+                  : "border-hud/25 bg-black/20 text-ice/60 hover:border-hud/50 hover:text-ice"
+              ].join(" ")}
+            >
+              Screener
+            </a>
+          </div>
           {data && (
             <div className="mt-6 space-y-2">
               <p className="text-xs uppercase tracking-[0.25em] text-ice/50">
