@@ -2,7 +2,7 @@ import "server-only";
 
 const GRAPHQL_ENDPOINT = "https://api.cloudflare.com/client/v4/graphql";
 
-export const CF_ANALYTICS_QUERY = `
+const CF_ANALYTICS_QUERY_DIMENSIONS = `
   query ScreenerAnalytics(
     $zoneId: String!
     $host: String!
@@ -160,6 +160,13 @@ export const CF_ANALYTICS_QUERY = `
   }
 `;
 
+// Some Cloudflare GraphQL schemas still expect `groupBy` instead of `dimensions`.
+// Keep a legacy variant and auto-fallback at runtime based on the error message.
+const CF_ANALYTICS_QUERY_GROUPBY = CF_ANALYTICS_QUERY_DIMENSIONS.replaceAll(
+  "\n          dimensions: [",
+  "\n          groupBy: ["
+);
+
 type CloudflareAnalyticsResponse = {
   data?: {
     viewer?: {
@@ -216,32 +223,18 @@ function isoDaysAgo(days: number) {
   return then.toISOString();
 }
 
-export async function getScreenerAnalytics() {
-  const token = getEnv("CLOUDFLARE_API_TOKEN");
-  const zoneId = getEnv("CLOUDFLARE_ZONE_ID");
-  const host = getEnv("CLOUDFLARE_HOSTNAME");
-
-  const end = new Date().toISOString();
-  const start24h = isoDaysAgo(1);
-  const start7d = isoDaysAgo(7);
-
+async function fetchAnalytics(
+  token: string,
+  query: string,
+  variables: Record<string, unknown>
+) {
   const response = await fetch(GRAPHQL_ENDPOINT, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({
-      query: CF_ANALYTICS_QUERY,
-      variables: {
-        zoneId,
-        host,
-        start24h,
-        end24h: end,
-        start7d,
-        end7d: end
-      }
-    }),
+    body: JSON.stringify({ query, variables }),
     cache: "no-store"
   });
 
@@ -253,8 +246,41 @@ export async function getScreenerAnalytics() {
   if (payload.errors?.length) {
     throw new Error(payload.errors[0]?.message ?? "Cloudflare API error");
   }
+  return payload;
+}
 
-  const zone = payload.data?.viewer?.zones?.[0];
+export async function getScreenerAnalytics() {
+  const token = getEnv("CLOUDFLARE_API_TOKEN");
+  const zoneId = getEnv("CLOUDFLARE_ZONE_ID");
+  const host = getEnv("CLOUDFLARE_HOSTNAME");
+
+  const end = new Date().toISOString();
+  const start24h = isoDaysAgo(1);
+  const start7d = isoDaysAgo(7);
+
+  const variables = {
+    zoneId,
+    host,
+    start24h,
+    end24h: end,
+    start7d,
+    end7d: end
+  };
+
+  let payload: CloudflareAnalyticsResponse | null = null;
+  try {
+    payload = await fetchAnalytics(token, CF_ANALYTICS_QUERY_DIMENSIONS, variables);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    // If the schema doesn't support `dimensions`, retry with `groupBy`.
+    if (/unknown arg(?:ument)?\s+"?dimensions"?/i.test(message)) {
+      payload = await fetchAnalytics(token, CF_ANALYTICS_QUERY_GROUPBY, variables);
+    } else {
+      throw err;
+    }
+  }
+
+  const zone = payload?.data?.viewer?.zones?.[0];
   const totals24h = zone?.totals24h?.[0];
   const totals7d = zone?.totals7d?.[0];
   return {
