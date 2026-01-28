@@ -12,11 +12,12 @@ type SummaryItem = {
 };
 
 function aggregateVisitsByDay(
-  rows: Array<{ dimensions: { datetimeHour: string }; sum: { visits: number } }>
+  rows: Array<{ dimensions: Record<string, string>; sum: { visits: number } }>,
+  timeKey: "datetimeHour" | "datetimeMinute"
 ) {
   const byDay = new Map<string, number>();
   for (const row of rows) {
-    const ts = row.dimensions.datetimeHour ?? "";
+    const ts = row.dimensions[timeKey] ?? "";
     const day = ts.slice(0, 10) || "Unknown";
     byDay.set(day, (byDay.get(day) ?? 0) + (row.sum?.visits ?? 0));
   }
@@ -66,14 +67,14 @@ export default async function StatsPage() {
       ]
     : [];
 
+  const timeKey: "datetimeHour" | "datetimeMinute" =
+    data?.meta?.timeDimension === "datetimeMinute" ? "datetimeMinute" : "datetimeHour";
+
   const visits24h = (data?.visits24h ?? [])
     .slice()
-    .sort((a, b) => (a.dimensions.datetimeHour < b.dimensions.datetimeHour ? -1 : 1));
+    .sort((a, b) => ((a.dimensions[timeKey] ?? "") < (b.dimensions[timeKey] ?? "") ? -1 : 1));
 
-  const visits7dDaily = aggregateVisitsByDay((data?.visits7d ?? []) as Array<{
-    dimensions: { datetimeHour: string };
-    sum: { visits: number };
-  }>);
+  const visits7dDaily = aggregateVisitsByDay(data?.visits7d ?? [], timeKey);
 
   const countries =
     data?.countries?.map((row) => ({
@@ -158,10 +159,10 @@ export default async function StatsPage() {
               )}
               {visits24h.slice(-24).map((row) => (
                 <div
-                  key={row.dimensions.datetimeHour}
+                  key={row.dimensions[timeKey] ?? "unknown"}
                   className="flex items-center justify-between border-b border-hud/10 pb-2"
                 >
-                  <span>{row.dimensions.datetimeHour}</span>
+                  <span>{row.dimensions[timeKey] ?? "Unknown"}</span>
                   <span>{formatNumber(row.sum.visits)}</span>
                 </div>
               ))}

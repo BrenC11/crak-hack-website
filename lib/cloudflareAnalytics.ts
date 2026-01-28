@@ -2,80 +2,36 @@ import "server-only";
 
 const GRAPHQL_ENDPOINT = "https://api.cloudflare.com/client/v4/graphql";
 
-export const CF_ANALYTICS_QUERY = `
-  query ScreenerAnalytics(
-    $zoneId: String!
-    $host: String!
-    $start24h: DateTime!
-    $end24h: DateTime!
-    $start7d: DateTime!
-    $end7d: DateTime!
-  ) {
-    viewer {
-      zones(filter: { zoneTag: $zoneId }) {
-        # Totals for last 24 hours
-        totals24h: httpRequestsAdaptiveGroups(
-          limit: 1
-          filter: {
-            datetime_geq: $start24h
-            datetime_leq: $end24h
-            clientRequestHTTPHost: $host
-          }
-        ) {
-          count
-          sum {
-            visits
-          }
-        }
-        # Totals for last 7 days
-        totals7d: httpRequestsAdaptiveGroups(
-          limit: 1
-          filter: {
-            datetime_geq: $start7d
-            datetime_leq: $end7d
-            clientRequestHTTPHost: $host
-          }
-        ) {
-          count
-          sum {
-            visits
-          }
-        }
-        # Visits over time: last 24h (hourly)
-        visits24h: httpRequestsAdaptiveGroups(
-          limit: 200
-          filter: {
-            datetime_geq: $start24h
-            datetime_leq: $end24h
-            clientRequestHTTPHost: $host
-          }
-        ) {
-          dimensions {
-            datetimeHour
-          }
-          count
-          sum {
-            visits
-          }
-        }
-        # Visits over time: last 7d (daily)
-        visits7d: httpRequestsAdaptiveGroups(
-          limit: 200
-          filter: {
-            datetime_geq: $start7d
-            datetime_leq: $end7d
-            clientRequestHTTPHost: $host
-          }
-        ) {
-          dimensions {
-            datetimeHour
-          }
-          count
-          sum {
-            visits
-          }
-        }
-        # Countries
+type IntrospectionTypeFieldsResponse = {
+  data?: {
+    __type?: {
+      name?: string;
+      fields?: Array<{ name: string }>;
+    } | null;
+  };
+  errors?: Array<{ message: string }>;
+};
+
+const DIMENSIONS_TYPE_CANDIDATES = [
+  "HttpRequestsAdaptiveGroupDimensions",
+  "httpRequestsAdaptiveGroupDimensions",
+  "HTTPRequestsAdaptiveGroupDimensions",
+  "HttpRequestsAdaptiveGroupDimension",
+  "httpRequestsAdaptiveGroupDimension"
+] as const;
+
+const TIME_DIMENSION_PREFERENCE = ["datetimeHour", "datetimeMinute"] as const;
+
+let dimensionsFieldSetPromise: Promise<Set<string>> | null = null;
+
+function buildScreenerAnalyticsQuery(opts: {
+  timeDimension: string;
+  includeCountry: boolean;
+  includeBrowser: boolean;
+  includeOs: boolean;
+}) {
+  const countryBlock = opts.includeCountry
+    ? `
         countries: httpRequestsAdaptiveGroups(
           limit: 50
           filter: {
@@ -84,15 +40,14 @@ export const CF_ANALYTICS_QUERY = `
             clientRequestHTTPHost: $host
           }
         ) {
-          dimensions {
-            clientCountryName
-          }
+          dimensions { clientCountryName }
           count
-          sum {
-            visits
-          }
-        }
-        # Browser breakdown
+          sum { visits }
+        }`
+    : "";
+
+  const browserBlock = opts.includeBrowser
+    ? `
         browsers: httpRequestsAdaptiveGroups(
           limit: 20
           filter: {
@@ -101,15 +56,14 @@ export const CF_ANALYTICS_QUERY = `
             clientRequestHTTPHost: $host
           }
         ) {
-          dimensions {
-            clientBrowserName
-          }
+          dimensions { clientBrowserName }
           count
-          sum {
-            visits
-          }
-        }
-        # OS breakdown
+          sum { visits }
+        }`
+    : "";
+
+  const osBlock = opts.includeOs
+    ? `
         operatingSystems: httpRequestsAdaptiveGroups(
           limit: 20
           filter: {
@@ -118,18 +72,74 @@ export const CF_ANALYTICS_QUERY = `
             clientRequestHTTPHost: $host
           }
         ) {
-          dimensions {
-            clientOSName
-          }
+          dimensions { clientOSName }
           count
-          sum {
-            visits
+          sum { visits }
+        }`
+    : "";
+
+  return `
+    query ScreenerAnalytics(
+      $zoneId: String!
+      $host: String!
+      $start24h: DateTime!
+      $end24h: DateTime!
+      $start7d: DateTime!
+      $end7d: DateTime!
+    ) {
+      viewer {
+        zones(filter: { zoneTag: $zoneId }) {
+          totals24h: httpRequestsAdaptiveGroups(
+            limit: 1
+            filter: {
+              datetime_geq: $start24h
+              datetime_leq: $end24h
+              clientRequestHTTPHost: $host
+            }
+          ) { count sum { visits } }
+
+          totals7d: httpRequestsAdaptiveGroups(
+            limit: 1
+            filter: {
+              datetime_geq: $start7d
+              datetime_leq: $end7d
+              clientRequestHTTPHost: $host
+            }
+          ) { count sum { visits } }
+
+          visits24h: httpRequestsAdaptiveGroups(
+            limit: 400
+            filter: {
+              datetime_geq: $start24h
+              datetime_leq: $end24h
+              clientRequestHTTPHost: $host
+            }
+          ) {
+            dimensions { ${opts.timeDimension} }
+            count
+            sum { visits }
           }
+
+          visits7d: httpRequestsAdaptiveGroups(
+            limit: 3000
+            filter: {
+              datetime_geq: $start7d
+              datetime_leq: $end7d
+              clientRequestHTTPHost: $host
+            }
+          ) {
+            dimensions { ${opts.timeDimension} }
+            count
+            sum { visits }
+          }
+          ${countryBlock}
+          ${browserBlock}
+          ${osBlock}
         }
       }
     }
-  }
-`;
+  `;
+}
 
 type CloudflareAnalyticsResponse = {
   data?: {
@@ -138,12 +148,12 @@ type CloudflareAnalyticsResponse = {
         totals24h?: Array<{ count: number; sum: { visits: number } }>;
         totals7d?: Array<{ count: number; sum: { visits: number } }>;
         visits24h?: Array<{
-          dimensions: { datetimeHour: string };
+          dimensions: Record<string, string>;
           count: number;
           sum: { visits: number };
         }>;
         visits7d?: Array<{
-          dimensions: { datetimeHour: string };
+          dimensions: Record<string, string>;
           count: number;
           sum: { visits: number };
         }>;
@@ -152,16 +162,8 @@ type CloudflareAnalyticsResponse = {
           count: number;
           sum: { visits: number };
         }>;
-        browsers?: Array<{
-          dimensions: { clientBrowserName?: string };
-          count: number;
-          sum: { visits: number };
-        }>;
-        operatingSystems?: Array<{
-          dimensions: { clientOSName?: string };
-          count: number;
-          sum: { visits: number };
-        }>;
+        browsers?: Array<{ dimensions: Record<string, string>; count: number; sum: { visits: number } }>;
+        operatingSystems?: Array<{ dimensions: Record<string, string>; count: number; sum: { visits: number } }>;
       }>;
     };
   };
@@ -208,6 +210,50 @@ async function fetchAnalytics(
   return payload;
 }
 
+async function fetchDimensionsFieldSet(token: string) {
+  const introspectionQuery = `
+    query TypeFields($name: String!) {
+      __type(name: $name) {
+        name
+        fields { name }
+      }
+    }
+  `;
+
+  for (const typeName of DIMENSIONS_TYPE_CANDIDATES) {
+    const response = await fetch(GRAPHQL_ENDPOINT, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        query: introspectionQuery,
+        variables: { name: typeName }
+      }),
+      cache: "no-store"
+    });
+
+    if (!response.ok) continue;
+    const payload = (await response.json()) as IntrospectionTypeFieldsResponse;
+    if (payload.errors?.length) continue;
+    const fields = payload.data?.__type?.fields;
+    if (fields?.length) {
+      return new Set(fields.map((f) => f.name));
+    }
+  }
+
+  // If introspection is blocked or the type name changes, fall back to a conservative set.
+  return new Set<string>(["datetimeHour", "datetimeMinute"]);
+}
+
+async function getDimensionsFieldSet(token: string) {
+  if (!dimensionsFieldSetPromise) {
+    dimensionsFieldSetPromise = fetchDimensionsFieldSet(token);
+  }
+  return dimensionsFieldSetPromise;
+}
+
 export async function getScreenerAnalytics() {
   const token = getEnv("CLOUDFLARE_API_TOKEN");
   const zoneId = getEnv("CLOUDFLARE_ZONE_ID");
@@ -226,7 +272,22 @@ export async function getScreenerAnalytics() {
     end7d: end
   };
 
-  const payload = await fetchAnalytics(token, CF_ANALYTICS_QUERY, variables);
+  const dims = await getDimensionsFieldSet(token);
+  const timeDimension =
+    TIME_DIMENSION_PREFERENCE.find((d) => dims.has(d)) ?? "datetimeHour";
+
+  const includeCountry = dims.has("clientCountryName");
+  const includeBrowser = dims.has("clientBrowserName");
+  const includeOs = dims.has("clientOSName");
+
+  const query = buildScreenerAnalyticsQuery({
+    timeDimension,
+    includeCountry,
+    includeBrowser,
+    includeOs
+  });
+
+  const payload = await fetchAnalytics(token, query, variables);
 
   const zone = payload?.data?.viewer?.zones?.[0];
   const totals24h = zone?.totals24h?.[0];
@@ -252,6 +313,10 @@ export async function getScreenerAnalytics() {
     countries: zone?.countries ?? [],
     cities: [],
     browsers: zone?.browsers ?? [],
-    operatingSystems: zone?.operatingSystems ?? []
+    operatingSystems: zone?.operatingSystems ?? [],
+    meta: {
+      timeDimension,
+      supportedDimensions: Array.from(dims)
+    }
   };
 }
