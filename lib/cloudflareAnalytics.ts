@@ -44,7 +44,6 @@ export const CF_ANALYTICS_QUERY = `
         # Visits over time: last 24h (hourly)
         visits24h: httpRequestsAdaptiveGroups(
           limit: 200
-          orderBy: [datetimeHour_ASC]
           filter: {
             datetime_geq: $start24h
             datetime_leq: $end24h
@@ -62,7 +61,6 @@ export const CF_ANALYTICS_QUERY = `
         # Visits over time: last 7d (daily)
         visits7d: httpRequestsAdaptiveGroups(
           limit: 200
-          orderBy: [datetimeDay_ASC]
           filter: {
             datetime_geq: $start7d
             datetime_leq: $end7d
@@ -80,7 +78,6 @@ export const CF_ANALYTICS_QUERY = `
         # Countries
         countries: httpRequestsAdaptiveGroups(
           limit: 50
-          orderBy: [sum_visits_DESC]
           filter: {
             datetime_geq: $start7d
             datetime_leq: $end7d
@@ -98,7 +95,6 @@ export const CF_ANALYTICS_QUERY = `
         # Cities (if available)
         cities: httpRequestsAdaptiveGroups(
           limit: 50
-          orderBy: [sum_visits_DESC]
           filter: {
             datetime_geq: $start7d
             datetime_leq: $end7d
@@ -116,7 +112,6 @@ export const CF_ANALYTICS_QUERY = `
         # Browser breakdown
         browsers: httpRequestsAdaptiveGroups(
           limit: 20
-          orderBy: [sum_visits_DESC]
           filter: {
             datetime_geq: $start7d
             datetime_leq: $end7d
@@ -134,7 +129,6 @@ export const CF_ANALYTICS_QUERY = `
         # OS breakdown
         operatingSystems: httpRequestsAdaptiveGroups(
           limit: 20
-          orderBy: [sum_visits_DESC]
           filter: {
             datetime_geq: $start7d
             datetime_leq: $end7d

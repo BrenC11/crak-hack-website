@@ -52,33 +52,41 @@ export default async function StatsPage() {
       ]
     : [];
 
+  const visits24h = (data?.visits24h ?? [])
+    .slice()
+    .sort((a, b) => (a.dimensions.datetimeHour < b.dimensions.datetimeHour ? -1 : 1));
+
+  const visits7d = (data?.visits7d ?? [])
+    .slice()
+    .sort((a, b) => (a.dimensions.datetimeDay < b.dimensions.datetimeDay ? -1 : 1));
+
   const countries =
     data?.countries?.map((row) => ({
       name: row.dimensions.clientCountryName ?? "Unknown",
       visits: row.sum.visits,
       requests: row.count
-    })) ?? [];
+    })).sort((a, b) => b.visits - a.visits) ?? [];
 
   const cities =
     data?.cities?.map((row) => ({
       name: row.dimensions.clientCityName ?? "Unknown",
       visits: row.sum.visits,
       requests: row.count
-    })) ?? [];
+    })).sort((a, b) => b.visits - a.visits) ?? [];
 
   const browsers =
     data?.browsers?.map((row) => ({
       name: row.dimensions.clientBrowserName ?? "Unknown",
       visits: row.sum.visits,
       requests: row.count
-    })) ?? [];
+    })).sort((a, b) => b.visits - a.visits) ?? [];
 
   const operatingSystems =
     data?.operatingSystems?.map((row) => ({
       name: row.dimensions.clientOSName ?? "Unknown",
       visits: row.sum.visits,
       requests: row.count
-    })) ?? [];
+    })).sort((a, b) => b.visits - a.visits) ?? [];
 
   return (
     <main className="ambient-still min-h-screen text-ice">
@@ -134,10 +142,10 @@ export default async function StatsPage() {
               Visits Over Time (24h)
             </p>
             <div className="mt-6 space-y-3 text-xs text-ice/70">
-              {!data?.visits24h?.length && (
+              {!visits24h.length && (
                 <p className="text-sm text-ice/60">No data yet.</p>
               )}
-              {data?.visits24h?.slice(-24).map((row) => (
+              {visits24h.slice(-24).map((row) => (
                 <div
                   key={row.dimensions.datetimeHour}
                   className="flex items-center justify-between border-b border-hud/10 pb-2"
@@ -154,10 +162,10 @@ export default async function StatsPage() {
               Visits Over Time (7d)
             </p>
             <div className="mt-6 space-y-3 text-xs text-ice/70">
-              {!data?.visits7d?.length && (
+              {!visits7d.length && (
                 <p className="text-sm text-ice/60">No data yet.</p>
               )}
-              {data?.visits7d?.slice(-14).map((row) => (
+              {visits7d.slice(-14).map((row) => (
                 <div
                   key={row.dimensions.datetimeDay}
                   className="flex items-center justify-between border-b border-hud/10 pb-2"
