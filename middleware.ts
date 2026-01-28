@@ -40,11 +40,11 @@ export function middleware(request: NextRequest) {
     if (token !== "ok") {
       url.pathname = "/crakhackscreener666/login";
       url.search = `?next=${encodeURIComponent(pathname)}`;
-      return NextResponse.rewrite(url);
+      return NextResponse.redirect(url);
     }
 
     url.pathname = "/crakhackscreener666";
-    return NextResponse.rewrite(url);
+    return NextResponse.redirect(url);
   }
 
   // 3. Only protect the screener paths
@@ -69,7 +69,7 @@ export function middleware(request: NextRequest) {
   // 6. Redirect to login
   url.pathname = "/crakhackscreener666/login";
   url.search = `?next=${encodeURIComponent(pathname)}`;
-  return NextResponse.rewrite(url);
+  return NextResponse.redirect(url);
 }
 
 export const config = {
