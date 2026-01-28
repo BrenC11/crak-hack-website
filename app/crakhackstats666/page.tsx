@@ -1,89 +1,87 @@
-"use client";
-
-import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
-
-type StatsResponse = {
-  range: { start: string; end: string; days: number };
-  totals: { requests: number; getRequests: number; putRequests: number };
-  byAction: Array<{
-    dimensions: { actionType: string; actionStatus: string };
-    sum: { requests: number };
-  }>;
-  storage: {
-    objectCount?: number;
-    uploadCount?: number;
-    payloadSize?: number;
-    metadataSize?: number;
-  } | null;
-  topCountries: Array<{
-    dimensions: { clientCountryName?: string };
-    sum: { requests: number };
-  }>;
-  error?: string;
-};
+import { getScreenerAnalytics } from "@/lib/cloudflareAnalytics";
 
 const formatNumber = (value: number) =>
   new Intl.NumberFormat("en-GB").format(value);
 
-const formatBytes = (value?: number) => {
-  if (!value && value !== 0) return "—";
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  let size = value;
-  let index = 0;
-  while (size >= 1024 && index < units.length - 1) {
-    size /= 1024;
-    index += 1;
-  }
-  return `${size.toFixed(1)} ${units[index]}`;
+type SummaryItem = {
+  label: string;
+  value: number;
 };
 
-export default function StatsPage() {
-  const [stats, setStats] = useState<StatsResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [days, setDays] = useState(14);
+function renderTable(
+  rows: Array<{ name: string; visits: number; requests: number }>,
+  emptyLabel: string
+) {
+  if (!rows.length) {
+    return <p className="text-sm text-ice/60">{emptyLabel}</p>;
+  }
+  return (
+    <div className="space-y-3 text-sm text-ice/70">
+      {rows.map((row) => (
+        <div
+          key={row.name}
+          className="flex items-center justify-between border-b border-hud/10 pb-3"
+        >
+          <span>{row.name}</span>
+          <span>{formatNumber(row.visits)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
-  useEffect(() => {
-    let active = true;
-    setLoading(true);
-    fetch(`/api/r2-stats?days=${days}`)
-      .then((res) => res.json())
-      .then((data: StatsResponse) => {
-        if (active) {
-          setStats(data);
-          setLoading(false);
-        }
-      })
-      .catch(() => {
-        if (active) {
-          setStats({ error: "Unable to load stats." } as StatsResponse);
-          setLoading(false);
-        }
-      });
-    return () => {
-      active = false;
-    };
-  }, [days]);
+export default async function StatsPage() {
+  let data: Awaited<ReturnType<typeof getScreenerAnalytics>> | null = null;
+  let error: string | null = null;
 
-  const totalViews = stats?.totals?.getRequests ?? 0;
-  const totalRequests = stats?.totals?.requests ?? 0;
-  const totalUploads = stats?.totals?.putRequests ?? 0;
+  try {
+    data = await getScreenerAnalytics();
+  } catch (err) {
+    error =
+      err instanceof Error ? err.message : "Unable to load analytics data.";
+  }
 
-  const topCountries = useMemo(() => {
-    if (!stats?.topCountries?.length) return [];
-    return stats.topCountries.slice(0, 8);
-  }, [stats]);
+  const summary: SummaryItem[] = data
+    ? [
+        { label: "Visits (24h)", value: data.totals24h.visits },
+        { label: "Page Views (24h)", value: data.totals24h.requests },
+        { label: "Visits (7d)", value: data.totals7d.visits }
+      ]
+    : [];
+
+  const countries =
+    data?.countries?.map((row) => ({
+      name: row.dimensions.clientCountryName ?? "Unknown",
+      visits: row.sum.visits,
+      requests: row.sum.requests
+    })) ?? [];
+
+  const cities =
+    data?.cities?.map((row) => ({
+      name: row.dimensions.clientCityName ?? "Unknown",
+      visits: row.sum.visits,
+      requests: row.sum.requests
+    })) ?? [];
+
+  const browsers =
+    data?.browsers?.map((row) => ({
+      name: row.dimensions.clientBrowserName ?? "Unknown",
+      visits: row.sum.visits,
+      requests: row.sum.requests
+    })) ?? [];
+
+  const operatingSystems =
+    data?.operatingSystems?.map((row) => ({
+      name: row.dimensions.clientOSName ?? "Unknown",
+      visits: row.sum.visits,
+      requests: row.sum.requests
+    })) ?? [];
 
   return (
     <main className="ambient-still min-h-screen text-ice">
       <section className="relative overflow-hidden px-6 pb-16 pt-24">
         <div className="absolute inset-0 noise-overlay" aria-hidden="true" />
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.0, ease: "easeOut" }}
-          className="relative z-10 mx-auto max-w-6xl"
-        >
+        <div className="relative z-10 mx-auto max-w-6xl">
           <p className="text-xs uppercase tracking-[0.3em] text-hud/70">
             Private Telemetry
           </p>
@@ -91,52 +89,17 @@ export default function StatsPage() {
             SCREENER SIGNALS
           </h1>
           <div className="mt-6 h-px w-40 bg-hud/40 shadow-glow" />
-          <div className="mt-6 flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.25em] text-ice/50">
-            <span>Range</span>
-            <button
-              type="button"
-              onClick={() => setDays(7)}
-              className={`rounded-full border px-4 py-2 transition ${
-                days === 7
-                  ? "border-hud/70 text-ice"
-                  : "border-hud/30 text-ice/60 hover:border-hud/60"
-              }`}
-            >
-              7d
-            </button>
-            <button
-              type="button"
-              onClick={() => setDays(14)}
-              className={`rounded-full border px-4 py-2 transition ${
-                days === 14
-                  ? "border-hud/70 text-ice"
-                  : "border-hud/30 text-ice/60 hover:border-hud/60"
-              }`}
-            >
-              14d
-            </button>
-            <button
-              type="button"
-              onClick={() => setDays(30)}
-              className={`rounded-full border px-4 py-2 transition ${
-                days === 30
-                  ? "border-hud/70 text-ice"
-                  : "border-hud/30 text-ice/60 hover:border-hud/60"
-              }`}
-            >
-              30d
-            </button>
-          </div>
-        </motion.div>
+          {data && (
+            <p className="mt-6 text-xs uppercase tracking-[0.25em] text-ice/50">
+              Range 24h / 7d
+            </p>
+          )}
+        </div>
       </section>
 
       <section className="relative bg-void/95 px-6 pb-24">
         <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-3">
-          {[
-            { label: "Views", value: totalViews },
-            { label: "Total Requests", value: totalRequests },
-            { label: "Uploads", value: totalUploads }
-          ].map((card) => (
+          {summary.map((card) => (
             <div
               key={card.label}
               className="glass-border relative overflow-hidden rounded-2xl bg-black/70 p-6"
@@ -150,69 +113,94 @@ export default function StatsPage() {
                   {card.label}
                 </p>
                 <p className="mt-4 text-3xl font-semibold text-ice">
-                  {loading ? "…" : formatNumber(card.value)}
+                  {formatNumber(card.value)}
                 </p>
               </div>
             </div>
           ))}
+          {error && (
+            <div className="glass-border rounded-2xl bg-black/70 p-6 text-sm text-ice/70">
+              {error}
+            </div>
+          )}
         </div>
 
         <div className="mx-auto mt-10 grid max-w-6xl gap-6 lg:grid-cols-2">
           <div className="glass-border rounded-2xl bg-black/70 p-6">
             <p className="text-xs uppercase tracking-[0.3em] text-hud/60">
-              Storage Snapshot
+              Visits Over Time (24h)
             </p>
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              <div>
-                <p className="text-sm text-ice/60">Objects</p>
-                <p className="mt-2 text-xl text-ice">
-                  {loading
-                    ? "…"
-                    : formatNumber(stats?.storage?.objectCount ?? 0)}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-ice/60">Uploads</p>
-                <p className="mt-2 text-xl text-ice">
-                  {loading
-                    ? "…"
-                    : formatNumber(stats?.storage?.uploadCount ?? 0)}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-ice/60">Payload Size</p>
-                <p className="mt-2 text-xl text-ice">
-                  {loading ? "…" : formatBytes(stats?.storage?.payloadSize)}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-ice/60">Metadata Size</p>
-                <p className="mt-2 text-xl text-ice">
-                  {loading ? "…" : formatBytes(stats?.storage?.metadataSize)}
-                </p>
-              </div>
+            <div className="mt-6 space-y-3 text-xs text-ice/70">
+              {!data?.visits24h?.length && (
+                <p className="text-sm text-ice/60">No data yet.</p>
+              )}
+              {data?.visits24h?.slice(-24).map((row) => (
+                <div
+                  key={row.dimensions.datetimeHour}
+                  className="flex items-center justify-between border-b border-hud/10 pb-2"
+                >
+                  <span>{row.dimensions.datetimeHour}</span>
+                  <span>{formatNumber(row.sum.visits)}</span>
+                </div>
+              ))}
             </div>
           </div>
 
           <div className="glass-border rounded-2xl bg-black/70 p-6">
             <p className="text-xs uppercase tracking-[0.3em] text-hud/60">
-              Top Locations
+              Visits Over Time (7d)
             </p>
-            <div className="mt-6 space-y-4 text-sm text-ice/70">
-              {loading && <p>Loading…</p>}
-              {!loading && topCountries.length === 0 && (
-                <p>Geo data unavailable. Add CLOUDFLARE_ZONE_ID + HOSTNAME.</p>
+            <div className="mt-6 space-y-3 text-xs text-ice/70">
+              {!data?.visits7d?.length && (
+                <p className="text-sm text-ice/60">No data yet.</p>
               )}
-              {!loading &&
-                topCountries.map((row) => (
-                  <div
-                    key={row.dimensions.clientCountryName ?? "unknown"}
-                    className="flex items-center justify-between border-b border-hud/10 pb-3"
-                  >
-                    <span>{row.dimensions.clientCountryName ?? "Unknown"}</span>
-                    <span>{formatNumber(row.sum.requests)}</span>
-                  </div>
-                ))}
+              {data?.visits7d?.slice(-14).map((row) => (
+                <div
+                  key={row.dimensions.datetimeDay}
+                  className="flex items-center justify-between border-b border-hud/10 pb-2"
+                >
+                  <span>{row.dimensions.datetimeDay}</span>
+                  <span>{formatNumber(row.sum.visits)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="mx-auto mt-10 grid max-w-6xl gap-6 lg:grid-cols-2">
+          <div className="glass-border rounded-2xl bg-black/70 p-6">
+            <p className="text-xs uppercase tracking-[0.3em] text-hud/60">
+              Countries (7d)
+            </p>
+            <div className="mt-6">
+              {renderTable(countries, "No geo data yet.")}
+            </div>
+          </div>
+          <div className="glass-border rounded-2xl bg-black/70 p-6">
+            <p className="text-xs uppercase tracking-[0.3em] text-hud/60">
+              Cities (7d)
+            </p>
+            <div className="mt-6">
+              {renderTable(cities, "City data unavailable.")}
+            </div>
+          </div>
+        </div>
+
+        <div className="mx-auto mt-10 grid max-w-6xl gap-6 lg:grid-cols-2">
+          <div className="glass-border rounded-2xl bg-black/70 p-6">
+            <p className="text-xs uppercase tracking-[0.3em] text-hud/60">
+              Browser (7d)
+            </p>
+            <div className="mt-6">
+              {renderTable(browsers, "No browser data yet.")}
+            </div>
+          </div>
+          <div className="glass-border rounded-2xl bg-black/70 p-6">
+            <p className="text-xs uppercase tracking-[0.3em] text-hud/60">
+              OS (7d)
+            </p>
+            <div className="mt-6">
+              {renderTable(operatingSystems, "No OS data yet.")}
             </div>
           </div>
         </div>
