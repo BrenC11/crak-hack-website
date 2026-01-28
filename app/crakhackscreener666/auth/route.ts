@@ -7,7 +7,7 @@ export async function GET(request: Request) {
   // instead of showing a 405 Method Not Allowed.
   const url = new URL("/crakhackscreener666/login", request.url);
   url.searchParams.set("next", "/crakhackscreener666");
-  return NextResponse.redirect(url);
+  return NextResponse.redirect(url, 302);
 }
 
 export async function POST(request: Request) {
@@ -20,11 +20,13 @@ export async function POST(request: Request) {
     const url = new URL("/crakhackscreener666/login", request.url);
     url.searchParams.set("error", "1");
     url.searchParams.set("next", nextPath);
-    return NextResponse.redirect(url);
+    // 303 ensures the browser follows with a GET (not another POST).
+    return NextResponse.redirect(url, 303);
   }
 
   const url = new URL(nextPath, request.url);
-  const response = NextResponse.redirect(url);
+  // 303 ensures the browser follows with a GET (not another POST).
+  const response = NextResponse.redirect(url, 303);
   response.cookies.set(COOKIE_NAME, "ok", {
     httpOnly: true,
     secure: true,
