@@ -25,27 +25,32 @@ export function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const host = request.headers.get("host");
 
-  const isScreenerPath = pathname.startsWith("/crakhackscreener666");
-  const isLoginPath = pathname.startsWith("/crakhackscreener666/login");
-  const isAuthPath = pathname.startsWith("/crakhackscreener666/auth");
-
-  if (isScreenerHost(host) && isPublicAsset(pathname)) {
+  if (isPublicAsset(pathname)) {
     return NextResponse.next();
   }
 
-  if (isScreenerHost(host) && (pathname === "/" || pathname === "")) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/crakhackscreener666";
-    return NextResponse.rewrite(url);
-  }
+  const hostIsScreener = isScreenerHost(host);
+  const needsScreenerRewrite =
+    hostIsScreener &&
+    (pathname === "/" || !pathname.startsWith("/crakhackscreener666"));
 
-  if (isScreenerHost(host) && !isScreenerPath && !isPublicAsset(pathname)) {
-    const url = request.nextUrl.clone();
-    url.pathname = `/crakhackscreener666${pathname}`;
-    return NextResponse.rewrite(url);
-  }
+  const effectivePath =
+    needsScreenerRewrite && pathname !== "/"
+      ? `/crakhackscreener666${pathname}`
+      : needsScreenerRewrite
+        ? "/crakhackscreener666"
+        : pathname;
+
+  const isScreenerPath = effectivePath.startsWith("/crakhackscreener666");
+  const isLoginPath = effectivePath.startsWith("/crakhackscreener666/login");
+  const isAuthPath = effectivePath.startsWith("/crakhackscreener666/auth");
 
   if (!isScreenerPath || isLoginPath || isAuthPath) {
+    if (hostIsScreener && needsScreenerRewrite) {
+      const url = request.nextUrl.clone();
+      url.pathname = effectivePath;
+      return NextResponse.rewrite(url);
+    }
     return NextResponse.next();
   }
 
@@ -56,7 +61,7 @@ export function middleware(request: NextRequest) {
 
   const url = request.nextUrl.clone();
   url.pathname = "/crakhackscreener666/login";
-  url.search = `?next=${encodeURIComponent(pathname + search)}`;
+  url.search = `?next=${encodeURIComponent(effectivePath + search)}`;
   return NextResponse.rewrite(url);
 }
 
