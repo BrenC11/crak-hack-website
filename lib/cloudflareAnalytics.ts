@@ -24,7 +24,7 @@ const TIME_DIMENSION_PREFERENCE = ["datetimeHour", "datetimeMinute"] as const;
 
 let dimensionsFieldSetPromise: Promise<Set<string>> | null = null;
 
-function buildScreenerAnalyticsQuery(opts: {
+function buildRangeAnalyticsQuery(opts: {
   timeDimension: string;
   includeCountry: boolean;
   includeBrowser: boolean;
@@ -35,8 +35,8 @@ function buildScreenerAnalyticsQuery(opts: {
         countries: httpRequestsAdaptiveGroups(
           limit: 50
           filter: {
-            datetime_geq: $start7d
-            datetime_leq: $end7d
+            datetime_geq: $start
+            datetime_leq: $end
             clientRequestHTTPHost: $host
           }
         ) {
@@ -51,8 +51,8 @@ function buildScreenerAnalyticsQuery(opts: {
         browsers: httpRequestsAdaptiveGroups(
           limit: 20
           filter: {
-            datetime_geq: $start7d
-            datetime_leq: $end7d
+            datetime_geq: $start
+            datetime_leq: $end
             clientRequestHTTPHost: $host
           }
         ) {
@@ -67,8 +67,8 @@ function buildScreenerAnalyticsQuery(opts: {
         operatingSystems: httpRequestsAdaptiveGroups(
           limit: 20
           filter: {
-            datetime_geq: $start7d
-            datetime_leq: $end7d
+            datetime_geq: $start
+            datetime_leq: $end
             clientRequestHTTPHost: $host
           }
         ) {
@@ -79,52 +79,28 @@ function buildScreenerAnalyticsQuery(opts: {
     : "";
 
   return `
-    query ScreenerAnalytics(
+    query RangeAnalytics(
       $zoneId: String!
       $host: String!
-      $start24h: DateTime!
-      $end24h: DateTime!
-      $start7d: DateTime!
-      $end7d: DateTime!
+      $start: DateTime!
+      $end: DateTime!
     ) {
       viewer {
         zones(filter: { zoneTag: $zoneId }) {
-          totals24h: httpRequestsAdaptiveGroups(
+          totals: httpRequestsAdaptiveGroups(
             limit: 1
             filter: {
-              datetime_geq: $start24h
-              datetime_leq: $end24h
+              datetime_geq: $start
+              datetime_leq: $end
               clientRequestHTTPHost: $host
             }
           ) { count sum { visits } }
 
-          totals7d: httpRequestsAdaptiveGroups(
-            limit: 1
-            filter: {
-              datetime_geq: $start7d
-              datetime_leq: $end7d
-              clientRequestHTTPHost: $host
-            }
-          ) { count sum { visits } }
-
-          visits24h: httpRequestsAdaptiveGroups(
+          visits: httpRequestsAdaptiveGroups(
             limit: 400
             filter: {
-              datetime_geq: $start24h
-              datetime_leq: $end24h
-              clientRequestHTTPHost: $host
-            }
-          ) {
-            dimensions { ${opts.timeDimension} }
-            count
-            sum { visits }
-          }
-
-          visits7d: httpRequestsAdaptiveGroups(
-            limit: 3000
-            filter: {
-              datetime_geq: $start7d
-              datetime_leq: $end7d
+              datetime_geq: $start
+              datetime_leq: $end
               clientRequestHTTPHost: $host
             }
           ) {
@@ -141,29 +117,43 @@ function buildScreenerAnalyticsQuery(opts: {
   `;
 }
 
+type RangeAnalyticsZone = {
+  totals?: Array<{ count: number; sum: { visits: number } }>;
+  visits?: Array<{
+    dimensions: Record<string, string>;
+    count: number;
+    sum: { visits: number };
+  }>;
+  countries?: Array<{
+    dimensions: { clientCountryName?: string };
+    count: number;
+    sum: { visits: number };
+  }>;
+  browsers?: Array<{
+    dimensions: Record<string, string>;
+    count: number;
+    sum: { visits: number };
+  }>;
+  operatingSystems?: Array<{
+    dimensions: Record<string, string>;
+    count: number;
+    sum: { visits: number };
+  }>;
+};
+
 type CloudflareAnalyticsResponse = {
   data?: {
     viewer?: {
       zones?: Array<{
-        totals24h?: Array<{ count: number; sum: { visits: number } }>;
-        totals7d?: Array<{ count: number; sum: { visits: number } }>;
-        visits24h?: Array<{
+        totals?: Array<{ count: number; sum: { visits: number } }>;
+        visits?: Array<{
           dimensions: Record<string, string>;
           count: number;
           sum: { visits: number };
         }>;
-        visits7d?: Array<{
-          dimensions: Record<string, string>;
-          count: number;
-          sum: { visits: number };
-        }>;
-        countries?: Array<{
-          dimensions: { clientCountryName?: string };
-          count: number;
-          sum: { visits: number };
-        }>;
-        browsers?: Array<{ dimensions: Record<string, string>; count: number; sum: { visits: number } }>;
-        operatingSystems?: Array<{ dimensions: Record<string, string>; count: number; sum: { visits: number } }>;
+        countries?: RangeAnalyticsZone["countries"];
+        browsers?: RangeAnalyticsZone["browsers"];
+        operatingSystems?: RangeAnalyticsZone["operatingSystems"];
       }>;
     };
   };
@@ -259,19 +249,6 @@ export async function getScreenerAnalytics() {
   const zoneId = getEnv("CLOUDFLARE_ZONE_ID");
   const host = getEnv("CLOUDFLARE_HOSTNAME");
 
-  const end = new Date().toISOString();
-  const start24h = isoDaysAgo(1);
-  const start7d = isoDaysAgo(7);
-
-  const variables = {
-    zoneId,
-    host,
-    start24h,
-    end24h: end,
-    start7d,
-    end7d: end
-  };
-
   const dims = await getDimensionsFieldSet(token);
   const timeDimension =
     TIME_DIMENSION_PREFERENCE.find((d) => dims.has(d)) ?? "datetimeHour";
@@ -280,18 +257,121 @@ export async function getScreenerAnalytics() {
   const includeBrowser = dims.has("clientBrowserName");
   const includeOs = dims.has("clientOSName");
 
-  const query = buildScreenerAnalyticsQuery({
+  const query = buildRangeAnalyticsQuery({
     timeDimension,
     includeCountry,
     includeBrowser,
     includeOs
   });
 
-  const payload = await fetchAnalytics(token, query, variables);
+  const endDate = new Date();
+  const end = endDate.toISOString();
+  const start24h = isoDaysAgo(1);
+  const start7d = isoDaysAgo(7);
 
-  const zone = payload?.data?.viewer?.zones?.[0];
-  const totals24h = zone?.totals24h?.[0];
-  const totals7d = zone?.totals7d?.[0];
+  // 24h fetch (single request)
+  const payload24h = await fetchAnalytics(token, query, {
+    zoneId,
+    host,
+    start: start24h,
+    end
+  });
+  const zone24h = (payload24h?.data?.viewer?.zones?.[0] ?? {}) as RangeAnalyticsZone;
+  const totals24h = zone24h.totals?.[0];
+
+  // 7d fetch must be chunked into <= 86400s windows per Cloudflare limits.
+  const start7dDate = new Date(start7d);
+  const ranges: Array<{ start: string; end: string }> = [];
+  let cursor = start7dDate;
+  while (cursor.getTime() < endDate.getTime()) {
+    const next = new Date(Math.min(endDate.getTime(), cursor.getTime() + 24 * 60 * 60 * 1000));
+    ranges.push({ start: cursor.toISOString(), end: next.toISOString() });
+    cursor = next;
+  }
+
+  const payloads7d = await Promise.all(
+    ranges.map((r) =>
+      fetchAnalytics(token, query, { zoneId, host, start: r.start, end: r.end })
+    )
+  );
+
+  const totals7dAgg = payloads7d.reduce(
+    (acc, p) => {
+      const z = (p?.data?.viewer?.zones?.[0] ?? {}) as RangeAnalyticsZone;
+      const t = z.totals?.[0];
+      acc.visits += t?.sum?.visits ?? 0;
+      acc.requests += t?.count ?? 0;
+      return acc;
+    },
+    { visits: 0, requests: 0 }
+  );
+
+  const visits7d = payloads7d.flatMap((p) => {
+    const z = (p?.data?.viewer?.zones?.[0] ?? {}) as RangeAnalyticsZone;
+    return z.visits ?? [];
+  });
+
+  function mergeTopRows(
+    rows: Array<{ name: string; visits: number; requests: number }>
+  ): Array<{ name: string; visits: number; requests: number }> {
+    const map = new Map<string, { visits: number; requests: number }>();
+    for (const row of rows) {
+      const key = row.name || "Unknown";
+      const prev = map.get(key) ?? { visits: 0, requests: 0 };
+      prev.visits += row.visits;
+      prev.requests += row.requests;
+      map.set(key, prev);
+    }
+    return Array.from(map.entries())
+      .map(([name, v]) => ({ name, visits: v.visits, requests: v.requests }))
+      .sort((a, b) => b.visits - a.visits);
+  }
+
+  const countriesMerged = includeCountry
+    ? mergeTopRows(
+        payloads7d.flatMap((p) => {
+          const z = (p?.data?.viewer?.zones?.[0] ?? {}) as RangeAnalyticsZone;
+          return (
+            z.countries?.map((row) => ({
+              name: row.dimensions.clientCountryName ?? "Unknown",
+              visits: row.sum.visits,
+              requests: row.count
+            })) ?? []
+          );
+        })
+      ).slice(0, 50)
+    : [];
+
+  const browsersMerged = includeBrowser
+    ? mergeTopRows(
+        payloads7d.flatMap((p) => {
+          const z = (p?.data?.viewer?.zones?.[0] ?? {}) as RangeAnalyticsZone;
+          return (
+            z.browsers?.map((row) => ({
+              name: row.dimensions.clientBrowserName ?? "Unknown",
+              visits: row.sum.visits,
+              requests: row.count
+            })) ?? []
+          );
+        })
+      ).slice(0, 20)
+    : [];
+
+  const osMerged = includeOs
+    ? mergeTopRows(
+        payloads7d.flatMap((p) => {
+          const z = (p?.data?.viewer?.zones?.[0] ?? {}) as RangeAnalyticsZone;
+          return (
+            z.operatingSystems?.map((row) => ({
+              name: row.dimensions.clientOSName ?? "Unknown",
+              visits: row.sum.visits,
+              requests: row.count
+            })) ?? []
+          );
+        })
+      ).slice(0, 20)
+    : [];
+
   return {
     range: {
       start24h,
@@ -305,18 +385,31 @@ export async function getScreenerAnalytics() {
       requests: totals24h?.count ?? 0
     },
     totals7d: {
-      visits: totals7d?.sum?.visits ?? 0,
-      requests: totals7d?.count ?? 0
+      visits: totals7dAgg.visits,
+      requests: totals7dAgg.requests
     },
-    visits24h: zone?.visits24h ?? [],
-    visits7d: zone?.visits7d ?? [],
-    countries: zone?.countries ?? [],
+    visits24h: zone24h.visits ?? [],
+    visits7d,
+    countries: countriesMerged.map((row) => ({
+      dimensions: { clientCountryName: row.name },
+      count: row.requests,
+      sum: { visits: row.visits }
+    })),
     cities: [],
-    browsers: zone?.browsers ?? [],
-    operatingSystems: zone?.operatingSystems ?? [],
+    browsers: browsersMerged.map((row) => ({
+      dimensions: { clientBrowserName: row.name },
+      count: row.requests,
+      sum: { visits: row.visits }
+    })),
+    operatingSystems: osMerged.map((row) => ({
+      dimensions: { clientOSName: row.name },
+      count: row.requests,
+      sum: { visits: row.visits }
+    })),
     meta: {
       timeDimension,
-      supportedDimensions: Array.from(dims)
+      supportedDimensions: Array.from(dims),
+      chunks: ranges.length
     }
   };
 }
