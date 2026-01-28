@@ -92,23 +92,6 @@ export const CF_ANALYTICS_QUERY = `
             visits
           }
         }
-        # Cities (if available)
-        cities: httpRequestsAdaptiveGroups(
-          limit: 50
-          filter: {
-            datetime_geq: $start7d
-            datetime_leq: $end7d
-            clientRequestHTTPHost: $host
-          }
-        ) {
-          dimensions {
-            clientCityName
-          }
-          count
-          sum {
-            visits
-          }
-        }
         # Browser breakdown
         browsers: httpRequestsAdaptiveGroups(
           limit: 20
@@ -166,11 +149,6 @@ type CloudflareAnalyticsResponse = {
         }>;
         countries?: Array<{
           dimensions: { clientCountryName?: string };
-          count: number;
-          sum: { visits: number };
-        }>;
-        cities?: Array<{
-          dimensions: { clientCityName?: string };
           count: number;
           sum: { visits: number };
         }>;
@@ -272,7 +250,7 @@ export async function getScreenerAnalytics() {
     visits24h: zone?.visits24h ?? [],
     visits7d: zone?.visits7d ?? [],
     countries: zone?.countries ?? [],
-    cities: zone?.cities ?? [],
+    cities: [],
     browsers: zone?.browsers ?? [],
     operatingSystems: zone?.operatingSystems ?? []
   };

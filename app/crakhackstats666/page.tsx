@@ -82,12 +82,8 @@ export default async function StatsPage() {
       requests: row.count
     })).sort((a, b) => b.visits - a.visits) ?? [];
 
-  const cities =
-    data?.cities?.map((row) => ({
-      name: row.dimensions.clientCityName ?? "Unknown",
-      visits: row.sum.visits,
-      requests: row.count
-    })).sort((a, b) => b.visits - a.visits) ?? [];
+  // Some Cloudflare zones/schemas don't provide city-level dimensions.
+  const cities: Array<{ name: string; visits: number; requests: number }> = [];
 
   const browsers =
     data?.browsers?.map((row) => ({
