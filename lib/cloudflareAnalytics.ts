@@ -274,7 +274,18 @@ export async function getScreenerAnalytics() {
     const message = err instanceof Error ? err.message : String(err);
     // If the schema doesn't support `dimensions`, retry with `groupBy`.
     if (/unknown arg(?:ument)?\s+"?dimensions"?/i.test(message)) {
-      payload = await fetchAnalytics(token, CF_ANALYTICS_QUERY_GROUPBY, variables);
+      try {
+        payload = await fetchAnalytics(token, CF_ANALYTICS_QUERY_GROUPBY, variables);
+      } catch (err2) {
+        const message2 = err2 instanceof Error ? err2.message : String(err2);
+        throw new Error(
+          [
+            "Cloudflare analytics query failed.",
+            `Tried dimensions-variant: ${message}`,
+            `Tried groupBy-variant: ${message2}`
+          ].join("\n")
+        );
+      }
     } else {
       throw err;
     }

@@ -1,5 +1,8 @@
 import { getScreenerAnalytics } from "@/lib/cloudflareAnalytics";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const formatNumber = (value: number) =>
   new Intl.NumberFormat("en-GB").format(value);
 
