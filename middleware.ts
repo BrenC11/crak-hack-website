@@ -4,8 +4,7 @@ import type { NextRequest } from "next/server";
 const COOKIE_NAME = "crakhack_screener";
 
 function isScreenerHost(host: string | null) {
-  if (!host) return false;
-  return host.startsWith("screener.crakhack.com");
+  return host === "screener.crakhack.com";
 }
 
 function isPublicAsset(pathname: string) {
@@ -15,57 +14,53 @@ function isPublicAsset(pathname: string) {
     pathname.startsWith("/robots") ||
     pathname.startsWith("/sitemap") ||
     pathname.startsWith("/images") ||
-    pathname.startsWith("/poster-placeholder.svg") ||
-    pathname.startsWith("/noise.svg") ||
-    pathname.startsWith("/ambient-still.jpg")
+    pathname.endsWith(".svg") ||
+    pathname.endsWith(".jpg") ||
+    pathname.endsWith(".png")
   );
 }
 
 export function middleware(request: NextRequest) {
-  const { pathname, search } = request.nextUrl;
+  const url = request.nextUrl.clone();
+  const { pathname } = url;
   const host = request.headers.get("host");
 
+  // 1. Always allow public assets
   if (isPublicAsset(pathname)) {
     return NextResponse.next();
   }
 
-  const hostIsScreener = isScreenerHost(host);
-  const isScreenerPath = pathname.startsWith("/crakhackscreener666");
-  const isLoginPath = pathname.startsWith("/crakhackscreener666/login");
-  const isAuthPath = pathname.startsWith("/crakhackscreener666/auth");
-  const needsScreenerRewrite =
-    hostIsScreener && !isPublicAsset(pathname) && !isScreenerPath;
-  const effectivePath = needsScreenerRewrite
-    ? "/crakhackscreener666"
-    : pathname;
+  // 2. HOST-BASED REWRITE (FIRST, ALWAYS)
+  if (isScreenerHost(host) && pathname === "/") {
+    url.pathname = "/crakhackscreener666";
+    return NextResponse.rewrite(url);
+  }
 
-  const effectiveIsLoginPath = effectivePath.startsWith(
-    "/crakhackscreener666/login"
-  );
-  const effectiveIsAuthPath = effectivePath.startsWith(
-    "/crakhackscreener666/auth"
-  );
-
-  if (!effectivePath.startsWith("/crakhackscreener666") || effectiveIsLoginPath || effectiveIsAuthPath) {
-    if (needsScreenerRewrite) {
-      const url = request.nextUrl.clone();
-      url.pathname = effectivePath;
-      return NextResponse.rewrite(url);
-    }
+  // 3. Only protect the screener paths
+  if (!pathname.startsWith("/crakhackscreener666")) {
     return NextResponse.next();
   }
 
+  // 4. Allow login/auth routes
+  if (
+    pathname.startsWith("/crakhackscreener666/login") ||
+    pathname.startsWith("/crakhackscreener666/auth")
+  ) {
+    return NextResponse.next();
+  }
+
+  // 5. Enforce auth
   const token = request.cookies.get(COOKIE_NAME)?.value;
   if (token === "ok") {
     return NextResponse.next();
   }
 
-  const url = request.nextUrl.clone();
+  // 6. Redirect to login
   url.pathname = "/crakhackscreener666/login";
-  url.search = `?next=${encodeURIComponent(effectivePath + search)}`;
+  url.search = `?next=${encodeURIComponent(pathname)}`;
   return NextResponse.rewrite(url);
 }
 
 export const config = {
-  matcher: ["/:path*"]
+  matcher: ["/:path*"],
 };
