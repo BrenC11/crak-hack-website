@@ -2,7 +2,7 @@ import "server-only";
 
 const GRAPHQL_ENDPOINT = "https://api.cloudflare.com/client/v4/graphql";
 
-const CF_ANALYTICS_QUERY_DIMENSIONS = `
+export const CF_ANALYTICS_QUERY = `
   query ScreenerAnalytics(
     $zoneId: String!
     $host: String!
@@ -45,7 +45,6 @@ const CF_ANALYTICS_QUERY_DIMENSIONS = `
         visits24h: httpRequestsAdaptiveGroups(
           limit: 200
           orderBy: [datetimeHour_ASC]
-          dimensions: [datetimeHour]
           filter: {
             datetime_geq: $start24h
             datetime_leq: $end24h
@@ -64,7 +63,6 @@ const CF_ANALYTICS_QUERY_DIMENSIONS = `
         visits7d: httpRequestsAdaptiveGroups(
           limit: 200
           orderBy: [datetimeDay_ASC]
-          dimensions: [datetimeDay]
           filter: {
             datetime_geq: $start7d
             datetime_leq: $end7d
@@ -83,7 +81,6 @@ const CF_ANALYTICS_QUERY_DIMENSIONS = `
         countries: httpRequestsAdaptiveGroups(
           limit: 50
           orderBy: [sum_visits_DESC]
-          dimensions: [clientCountryName]
           filter: {
             datetime_geq: $start7d
             datetime_leq: $end7d
@@ -102,7 +99,6 @@ const CF_ANALYTICS_QUERY_DIMENSIONS = `
         cities: httpRequestsAdaptiveGroups(
           limit: 50
           orderBy: [sum_visits_DESC]
-          dimensions: [clientCityName]
           filter: {
             datetime_geq: $start7d
             datetime_leq: $end7d
@@ -121,7 +117,6 @@ const CF_ANALYTICS_QUERY_DIMENSIONS = `
         browsers: httpRequestsAdaptiveGroups(
           limit: 20
           orderBy: [sum_visits_DESC]
-          dimensions: [clientBrowserName]
           filter: {
             datetime_geq: $start7d
             datetime_leq: $end7d
@@ -140,7 +135,6 @@ const CF_ANALYTICS_QUERY_DIMENSIONS = `
         operatingSystems: httpRequestsAdaptiveGroups(
           limit: 20
           orderBy: [sum_visits_DESC]
-          dimensions: [clientOSName]
           filter: {
             datetime_geq: $start7d
             datetime_leq: $end7d
@@ -159,13 +153,6 @@ const CF_ANALYTICS_QUERY_DIMENSIONS = `
     }
   }
 `;
-
-// Some Cloudflare GraphQL schemas still expect `groupBy` instead of `dimensions`.
-// Keep a legacy variant and auto-fallback at runtime based on the error message.
-const CF_ANALYTICS_QUERY_GROUPBY = CF_ANALYTICS_QUERY_DIMENSIONS.replaceAll(
-  "\n          dimensions: [",
-  "\n          groupBy: ["
-);
 
 type CloudflareAnalyticsResponse = {
   data?: {
@@ -267,29 +254,7 @@ export async function getScreenerAnalytics() {
     end7d: end
   };
 
-  let payload: CloudflareAnalyticsResponse | null = null;
-  try {
-    payload = await fetchAnalytics(token, CF_ANALYTICS_QUERY_DIMENSIONS, variables);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    // If the schema doesn't support `dimensions`, retry with `groupBy`.
-    if (/unknown arg(?:ument)?\s+"?dimensions"?/i.test(message)) {
-      try {
-        payload = await fetchAnalytics(token, CF_ANALYTICS_QUERY_GROUPBY, variables);
-      } catch (err2) {
-        const message2 = err2 instanceof Error ? err2.message : String(err2);
-        throw new Error(
-          [
-            "Cloudflare analytics query failed.",
-            `Tried dimensions-variant: ${message}`,
-            `Tried groupBy-variant: ${message2}`
-          ].join("\n")
-        );
-      }
-    } else {
-      throw err;
-    }
-  }
+  const payload = await fetchAnalytics(token, CF_ANALYTICS_QUERY, variables);
 
   const zone = payload?.data?.viewer?.zones?.[0];
   const totals24h = zone?.totals24h?.[0];
