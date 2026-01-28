@@ -19,7 +19,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="bg-void">
-      <body className={spaceGrotesk.className}>{children}</body>
+      <body
+        className={spaceGrotesk.className}
+        // Fallback colors in case CSS is blocked/not yet loaded.
+        style={{ backgroundColor: "#050608", color: "#dfe9ff" }}
+      >
+        {children}
+      </body>
     </html>
   );
 }
