@@ -11,6 +11,20 @@ type SummaryItem = {
   value: number;
 };
 
+function aggregateVisitsByDay(
+  rows: Array<{ dimensions: { datetimeHour: string }; sum: { visits: number } }>
+) {
+  const byDay = new Map<string, number>();
+  for (const row of rows) {
+    const ts = row.dimensions.datetimeHour ?? "";
+    const day = ts.slice(0, 10) || "Unknown";
+    byDay.set(day, (byDay.get(day) ?? 0) + (row.sum?.visits ?? 0));
+  }
+  return Array.from(byDay.entries())
+    .map(([day, visits]) => ({ day, visits }))
+    .sort((a, b) => (a.day < b.day ? -1 : 1));
+}
+
 function renderTable(
   rows: Array<{ name: string; visits: number; requests: number }>,
   emptyLabel: string
@@ -56,9 +70,10 @@ export default async function StatsPage() {
     .slice()
     .sort((a, b) => (a.dimensions.datetimeHour < b.dimensions.datetimeHour ? -1 : 1));
 
-  const visits7d = (data?.visits7d ?? [])
-    .slice()
-    .sort((a, b) => (a.dimensions.datetimeDay < b.dimensions.datetimeDay ? -1 : 1));
+  const visits7dDaily = aggregateVisitsByDay((data?.visits7d ?? []) as Array<{
+    dimensions: { datetimeHour: string };
+    sum: { visits: number };
+  }>);
 
   const countries =
     data?.countries?.map((row) => ({
@@ -162,16 +177,16 @@ export default async function StatsPage() {
               Visits Over Time (7d)
             </p>
             <div className="mt-6 space-y-3 text-xs text-ice/70">
-              {!visits7d.length && (
+              {!visits7dDaily.length && (
                 <p className="text-sm text-ice/60">No data yet.</p>
               )}
-              {visits7d.slice(-14).map((row) => (
+              {visits7dDaily.slice(-14).map((row) => (
                 <div
-                  key={row.dimensions.datetimeDay}
+                  key={row.day}
                   className="flex items-center justify-between border-b border-hud/10 pb-2"
                 >
-                  <span>{row.dimensions.datetimeDay}</span>
-                  <span>{formatNumber(row.sum.visits)}</span>
+                  <span>{row.day}</span>
+                  <span>{formatNumber(row.visits)}</span>
                 </div>
               ))}
             </div>

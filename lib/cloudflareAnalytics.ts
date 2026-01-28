@@ -68,7 +68,7 @@ export const CF_ANALYTICS_QUERY = `
           }
         ) {
           dimensions {
-            datetimeDay
+            datetimeHour
           }
           count
           sum {
@@ -160,7 +160,7 @@ type CloudflareAnalyticsResponse = {
           sum: { visits: number };
         }>;
         visits7d?: Array<{
-          dimensions: { datetimeDay: string };
+          dimensions: { datetimeHour: string };
           count: number;
           sum: { visits: number };
         }>;
