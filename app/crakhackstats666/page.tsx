@@ -53,28 +53,28 @@ export default async function StatsPage() {
     data?.countries?.map((row) => ({
       name: row.dimensions.clientCountryName ?? "Unknown",
       visits: row.sum.visits,
-      requests: row.sum.requests
+      requests: row.count
     })) ?? [];
 
   const cities =
     data?.cities?.map((row) => ({
       name: row.dimensions.clientCityName ?? "Unknown",
       visits: row.sum.visits,
-      requests: row.sum.requests
+      requests: row.count
     })) ?? [];
 
   const browsers =
     data?.browsers?.map((row) => ({
       name: row.dimensions.clientBrowserName ?? "Unknown",
       visits: row.sum.visits,
-      requests: row.sum.requests
+      requests: row.count
     })) ?? [];
 
   const operatingSystems =
     data?.operatingSystems?.map((row) => ({
       name: row.dimensions.clientOSName ?? "Unknown",
       visits: row.sum.visits,
-      requests: row.sum.requests
+      requests: row.count
     })) ?? [];
 
   return (

@@ -22,9 +22,9 @@ export const CF_ANALYTICS_QUERY = `
             clientRequestHTTPHost: $host
           }
         ) {
+          count
           sum {
             visits
-            requests
           }
         }
         # Totals for last 7 days
@@ -36,9 +36,9 @@ export const CF_ANALYTICS_QUERY = `
             clientRequestHTTPHost: $host
           }
         ) {
+          count
           sum {
             visits
-            requests
           }
         }
         # Visits over time: last 24h (hourly)
@@ -55,9 +55,9 @@ export const CF_ANALYTICS_QUERY = `
           dimensions {
             datetimeHour
           }
+          count
           sum {
             visits
-            requests
           }
         }
         # Visits over time: last 7d (daily)
@@ -74,9 +74,9 @@ export const CF_ANALYTICS_QUERY = `
           dimensions {
             datetimeDay
           }
+          count
           sum {
             visits
-            requests
           }
         }
         # Countries
@@ -93,9 +93,9 @@ export const CF_ANALYTICS_QUERY = `
           dimensions {
             clientCountryName
           }
+          count
           sum {
             visits
-            requests
           }
         }
         # Cities (if available)
@@ -112,9 +112,9 @@ export const CF_ANALYTICS_QUERY = `
           dimensions {
             clientCityName
           }
+          count
           sum {
             visits
-            requests
           }
         }
         # Browser breakdown
@@ -131,9 +131,9 @@ export const CF_ANALYTICS_QUERY = `
           dimensions {
             clientBrowserName
           }
+          count
           sum {
             visits
-            requests
           }
         }
         # OS breakdown
@@ -150,9 +150,9 @@ export const CF_ANALYTICS_QUERY = `
           dimensions {
             clientOSName
           }
+          count
           sum {
             visits
-            requests
           }
         }
       }
@@ -164,31 +164,37 @@ type CloudflareAnalyticsResponse = {
   data?: {
     viewer?: {
       zones?: Array<{
-        totals24h?: Array<{ sum: { visits: number; requests: number } }>;
-        totals7d?: Array<{ sum: { visits: number; requests: number } }>;
+        totals24h?: Array<{ count: number; sum: { visits: number } }>;
+        totals7d?: Array<{ count: number; sum: { visits: number } }>;
         visits24h?: Array<{
           dimensions: { datetimeHour: string };
-          sum: { visits: number; requests: number };
+          count: number;
+          sum: { visits: number };
         }>;
         visits7d?: Array<{
           dimensions: { datetimeDay: string };
-          sum: { visits: number; requests: number };
+          count: number;
+          sum: { visits: number };
         }>;
         countries?: Array<{
           dimensions: { clientCountryName?: string };
-          sum: { visits: number; requests: number };
+          count: number;
+          sum: { visits: number };
         }>;
         cities?: Array<{
           dimensions: { clientCityName?: string };
-          sum: { visits: number; requests: number };
+          count: number;
+          sum: { visits: number };
         }>;
         browsers?: Array<{
           dimensions: { clientBrowserName?: string };
-          sum: { visits: number; requests: number };
+          count: number;
+          sum: { visits: number };
         }>;
         operatingSystems?: Array<{
           dimensions: { clientOSName?: string };
-          sum: { visits: number; requests: number };
+          count: number;
+          sum: { visits: number };
         }>;
       }>;
     };
@@ -249,6 +255,8 @@ export async function getScreenerAnalytics() {
   }
 
   const zone = payload.data?.viewer?.zones?.[0];
+  const totals24h = zone?.totals24h?.[0];
+  const totals7d = zone?.totals7d?.[0];
   return {
     range: {
       start24h,
@@ -256,8 +264,15 @@ export async function getScreenerAnalytics() {
       start7d,
       end7d: end
     },
-    totals24h: zone?.totals24h?.[0]?.sum ?? { visits: 0, requests: 0 },
-    totals7d: zone?.totals7d?.[0]?.sum ?? { visits: 0, requests: 0 },
+    // Cloudflare GraphQL `httpRequestsAdaptiveGroups` uses `count` for request totals.
+    totals24h: {
+      visits: totals24h?.sum?.visits ?? 0,
+      requests: totals24h?.count ?? 0
+    },
+    totals7d: {
+      visits: totals7d?.sum?.visits ?? 0,
+      requests: totals7d?.count ?? 0
+    },
     visits24h: zone?.visits24h ?? [],
     visits7d: zone?.visits7d ?? [],
     countries: zone?.countries ?? [],
