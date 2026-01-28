@@ -4,7 +4,11 @@ import type { NextRequest } from "next/server";
 const COOKIE_NAME = "crakhack_screener";
 
 function isScreenerHost(host: string | null) {
-  return host === "screener.crakhack.com";
+  const normalized = (host ?? "").split(":")[0]?.toLowerCase();
+  // Accept both spellings just in case DNS/certs differ.
+  return (
+    normalized === "screener.crakhack.com" || normalized === "screener.crackhack.com"
+  );
 }
 
 function isPublicAsset(pathname: string) {
@@ -30,8 +34,15 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. HOST-BASED REWRITE (FIRST, ALWAYS)
+  // 2. Screener subdomain root should be protected too.
   if (isScreenerHost(host) && pathname === "/") {
+    const token = request.cookies.get(COOKIE_NAME)?.value;
+    if (token !== "ok") {
+      url.pathname = "/crakhackscreener666/login";
+      url.search = `?next=${encodeURIComponent(pathname)}`;
+      return NextResponse.rewrite(url);
+    }
+
     url.pathname = "/crakhackscreener666";
     return NextResponse.rewrite(url);
   }
