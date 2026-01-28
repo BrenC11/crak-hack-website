@@ -1,4 +1,5 @@
 import { getScreenerAnalytics, type AnalyticsTarget } from "@/lib/cloudflareAnalytics";
+import { StatsCharts } from "@/components/StatsCharts";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -12,17 +13,24 @@ type SummaryItem = {
 };
 
 function aggregateVisitsByDay(
-  rows: Array<{ dimensions: Record<string, string>; sum: { visits: number } }>,
+  rows: Array<{
+    dimensions: Record<string, string>;
+    sum: { visits: number };
+    count: number;
+  }>,
   timeKey: "datetimeHour" | "datetimeMinute"
 ) {
-  const byDay = new Map<string, number>();
+  const byDay = new Map<string, { visits: number; views: number }>();
   for (const row of rows) {
     const ts = row.dimensions[timeKey] ?? "";
     const day = ts.slice(0, 10) || "Unknown";
-    byDay.set(day, (byDay.get(day) ?? 0) + (row.sum?.visits ?? 0));
+    const prev = byDay.get(day) ?? { visits: 0, views: 0 };
+    prev.visits += row.sum?.visits ?? 0;
+    prev.views += row.count ?? 0;
+    byDay.set(day, prev);
   }
   return Array.from(byDay.entries())
-    .map(([day, visits]) => ({ day, visits }))
+    .map(([day, v]) => ({ day, visits: v.visits, views: v.views }))
     .sort((a, b) => (a.day < b.day ? -1 : 1));
 }
 
@@ -92,8 +100,12 @@ export default async function StatsPage({
       requests: row.count
     })).sort((a, b) => b.visits - a.visits) ?? [];
 
-  // Some Cloudflare zones/schemas don't provide city-level dimensions.
-  const cities: Array<{ name: string; visits: number; requests: number }> = [];
+  const cities =
+    data?.cities?.map((row) => ({
+      name: row.dimensions.clientCityName ?? "Unknown",
+      visits: row.sum.visits,
+      requests: row.count
+    })).sort((a, b) => b.visits - a.visits) ?? [];
 
   const browsers =
     data?.browsers?.map((row) => ({
@@ -108,6 +120,23 @@ export default async function StatsPage({
       visits: row.sum.visits,
       requests: row.count
     })).sort((a, b) => b.visits - a.visits) ?? [];
+
+  const chart24h = visits24h.slice(-48).map((row) => {
+    const key = row.dimensions[timeKey] ?? "unknown";
+    const label = key.includes("T") ? key.slice(11, 16) : key;
+    return {
+      key,
+      label,
+      visits: row.sum.visits,
+      views: row.count
+    };
+  });
+
+  const chart7d = visits7dDaily.slice(-14).map((row) => ({
+    day: row.day,
+    visits: row.visits,
+    views: row.views
+  }));
 
   return (
     <main className="ambient-still min-h-screen text-ice">
@@ -191,6 +220,8 @@ export default async function StatsPage({
             </div>
           )}
         </div>
+
+        <StatsCharts points24h={chart24h} points7d={chart7d} />
 
         <div className="mx-auto mt-10 grid max-w-6xl gap-6 lg:grid-cols-2">
           <div className="glass-border rounded-2xl bg-black/70 p-6">

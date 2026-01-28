@@ -359,6 +359,68 @@ async function getDimensionsFieldSet(token: string) {
   return dimensionsFieldSetPromise;
 }
 
+function buildProbeQuery(field: string) {
+  return `
+    query ProbeDimension($zoneId: String!, $host: String!, $start: DateTime!, $end: DateTime!) {
+      viewer {
+        zones(filter: { zoneTag: $zoneId }) {
+          probe: httpRequestsAdaptiveGroups(
+            limit: 1
+            filter: {
+              datetime_geq: $start
+              datetime_leq: $end
+              clientRequestHTTPHost: $host
+            }
+          ) {
+            dimensions { ${field} }
+          }
+        }
+      }
+    }
+  `;
+}
+
+async function probeDimensionField(args: {
+  token: string;
+  zoneId: string;
+  host: string;
+  start: string;
+  end: string;
+  field: string;
+}) {
+  try {
+    await fetchAnalytics(args.token, buildProbeQuery(args.field), {
+      zoneId: args.zoneId,
+      host: args.host,
+      start: args.start,
+      end: args.end
+    });
+    return true;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (new RegExp(`unknown field\\s+"?${args.field}"?`, "i").test(message)) {
+      return false;
+    }
+    // If something else went wrong (token, zone, etc.), don't treat it as "unsupported field".
+    throw err;
+  }
+}
+
+async function pickWorkingDimension(args: {
+  token: string;
+  zoneId: string;
+  host: string;
+  start: string;
+  end: string;
+  candidates: readonly string[];
+}) {
+  for (const field of args.candidates) {
+    const ok = await probeDimensionField({ ...args, field });
+    if (ok) return field;
+  }
+  return null;
+}
+
 export async function getScreenerAnalytics(target: AnalyticsTarget = "screener") {
   const token = getEnv("CLOUDFLARE_API_TOKEN");
   const zoneId = getEnv("CLOUDFLARE_ZONE_ID");
@@ -368,7 +430,7 @@ export async function getScreenerAnalytics(target: AnalyticsTarget = "screener")
   const timeDimension =
     TIME_DIMENSION_PREFERENCE.find((d) => dims.has(d)) ?? "datetimeHour";
 
-  const countryDimension = pickDimension(dims, [
+  let countryDimension = pickDimension(dims, [
     "clientCountryName",
     "clientCountry",
     "clientCountryCode",
@@ -376,23 +438,84 @@ export async function getScreenerAnalytics(target: AnalyticsTarget = "screener")
     "clientCountryAlpha3"
   ] as const);
 
-  const cityDimension = pickDimension(dims, [
+  let cityDimension = pickDimension(dims, [
     "clientCityName",
     "clientCity",
     "clientCityCode"
   ] as const);
 
-  const browserDimension = pickDimension(dims, [
+  let browserDimension = pickDimension(dims, [
     "clientBrowserName",
     "clientBrowserFamily",
     "clientBrowser"
   ] as const);
 
-  const osDimension = pickDimension(dims, [
+  let osDimension = pickDimension(dims, [
     "clientOSName",
     "clientOperatingSystem",
     "clientOS"
   ] as const);
+
+  const endDate = new Date();
+  const end = endDate.toISOString();
+  const start24h = isoDaysAgo(1);
+  const start7d = isoDaysAgo(7);
+
+  // If introspection is blocked (common in Cloudflare prod), probe field existence safely.
+  if (!countryDimension || !cityDimension || !browserDimension || !osDimension) {
+    const [countryProbe, cityProbe, browserProbe, osProbe] = await Promise.all([
+      countryDimension
+        ? Promise.resolve(countryDimension)
+        : pickWorkingDimension({
+            token,
+            zoneId,
+            host,
+            start: start24h,
+            end,
+            candidates: [
+              "clientCountryName",
+              "clientCountry",
+              "clientCountryCode",
+              "clientCountryAlpha2",
+              "clientCountryAlpha3"
+            ]
+          }),
+      cityDimension
+        ? Promise.resolve(cityDimension)
+        : pickWorkingDimension({
+            token,
+            zoneId,
+            host,
+            start: start24h,
+            end,
+            candidates: ["clientCityName", "clientCity", "clientCityCode"]
+          }),
+      browserDimension
+        ? Promise.resolve(browserDimension)
+        : pickWorkingDimension({
+            token,
+            zoneId,
+            host,
+            start: start24h,
+            end,
+            candidates: ["clientBrowserName", "clientBrowserFamily", "clientBrowser"]
+          }),
+      osDimension
+        ? Promise.resolve(osDimension)
+        : pickWorkingDimension({
+            token,
+            zoneId,
+            host,
+            start: start24h,
+            end,
+            candidates: ["clientOSName", "clientOperatingSystem", "clientOS"]
+          })
+    ]);
+    countryDimension = countryProbe;
+    cityDimension = cityProbe;
+    browserDimension = browserProbe;
+    osDimension = osProbe;
+  }
 
   const query = buildRangeAnalyticsQuery({
     timeDimension,
@@ -401,11 +524,6 @@ export async function getScreenerAnalytics(target: AnalyticsTarget = "screener")
     browserDimension,
     osDimension
   });
-
-  const endDate = new Date();
-  const end = endDate.toISOString();
-  const start24h = isoDaysAgo(1);
-  const start7d = isoDaysAgo(7);
 
   // 24h fetch (single request)
   const payload24h = await fetchAnalytics(token, query, {
