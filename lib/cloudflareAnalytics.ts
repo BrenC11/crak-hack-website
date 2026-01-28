@@ -24,13 +24,24 @@ const TIME_DIMENSION_PREFERENCE = ["datetimeHour", "datetimeMinute"] as const;
 
 let dimensionsFieldSetPromise: Promise<Set<string>> | null = null;
 
+function pickDimension(
+  supported: Set<string>,
+  candidates: readonly string[]
+): string | null {
+  for (const name of candidates) {
+    if (supported.has(name)) return name;
+  }
+  return null;
+}
+
 function buildRangeAnalyticsQuery(opts: {
   timeDimension: string;
-  includeCountry: boolean;
-  includeBrowser: boolean;
-  includeOs: boolean;
+  countryDimension: string | null;
+  cityDimension: string | null;
+  browserDimension: string | null;
+  osDimension: string | null;
 }) {
-  const countryBlock = opts.includeCountry
+  const countryBlock = opts.countryDimension
     ? `
         countries: httpRequestsAdaptiveGroups(
           limit: 50
@@ -40,13 +51,29 @@ function buildRangeAnalyticsQuery(opts: {
             clientRequestHTTPHost: $host
           }
         ) {
-          dimensions { clientCountryName }
+          dimensions { ${opts.countryDimension} }
           count
           sum { visits }
         }`
     : "";
 
-  const browserBlock = opts.includeBrowser
+  const cityBlock = opts.cityDimension
+    ? `
+        cities: httpRequestsAdaptiveGroups(
+          limit: 50
+          filter: {
+            datetime_geq: $start
+            datetime_leq: $end
+            clientRequestHTTPHost: $host
+          }
+        ) {
+          dimensions { ${opts.cityDimension} }
+          count
+          sum { visits }
+        }`
+    : "";
+
+  const browserBlock = opts.browserDimension
     ? `
         browsers: httpRequestsAdaptiveGroups(
           limit: 20
@@ -56,13 +83,13 @@ function buildRangeAnalyticsQuery(opts: {
             clientRequestHTTPHost: $host
           }
         ) {
-          dimensions { clientBrowserName }
+          dimensions { ${opts.browserDimension} }
           count
           sum { visits }
         }`
     : "";
 
-  const osBlock = opts.includeOs
+  const osBlock = opts.osDimension
     ? `
         operatingSystems: httpRequestsAdaptiveGroups(
           limit: 20
@@ -72,7 +99,7 @@ function buildRangeAnalyticsQuery(opts: {
             clientRequestHTTPHost: $host
           }
         ) {
-          dimensions { clientOSName }
+          dimensions { ${opts.osDimension} }
           count
           sum { visits }
         }`
@@ -109,6 +136,7 @@ function buildRangeAnalyticsQuery(opts: {
             sum { visits }
           }
           ${countryBlock}
+          ${cityBlock}
           ${browserBlock}
           ${osBlock}
         }
@@ -125,7 +153,12 @@ type RangeAnalyticsZone = {
     sum: { visits: number };
   }>;
   countries?: Array<{
-    dimensions: { clientCountryName?: string };
+    dimensions: Record<string, string>;
+    count: number;
+    sum: { visits: number };
+  }>;
+  cities?: Array<{
+    dimensions: Record<string, string>;
     count: number;
     sum: { visits: number };
   }>;
@@ -152,6 +185,7 @@ type CloudflareAnalyticsResponse = {
           sum: { visits: number };
         }>;
         countries?: RangeAnalyticsZone["countries"];
+        cities?: RangeAnalyticsZone["cities"];
         browsers?: RangeAnalyticsZone["browsers"];
         operatingSystems?: RangeAnalyticsZone["operatingSystems"];
       }>;
@@ -253,15 +287,38 @@ export async function getScreenerAnalytics() {
   const timeDimension =
     TIME_DIMENSION_PREFERENCE.find((d) => dims.has(d)) ?? "datetimeHour";
 
-  const includeCountry = dims.has("clientCountryName");
-  const includeBrowser = dims.has("clientBrowserName");
-  const includeOs = dims.has("clientOSName");
+  const countryDimension = pickDimension(dims, [
+    "clientCountryName",
+    "clientCountry",
+    "clientCountryCode",
+    "clientCountryAlpha2",
+    "clientCountryAlpha3"
+  ] as const);
+
+  const cityDimension = pickDimension(dims, [
+    "clientCityName",
+    "clientCity",
+    "clientCityCode"
+  ] as const);
+
+  const browserDimension = pickDimension(dims, [
+    "clientBrowserName",
+    "clientBrowserFamily",
+    "clientBrowser"
+  ] as const);
+
+  const osDimension = pickDimension(dims, [
+    "clientOSName",
+    "clientOperatingSystem",
+    "clientOS"
+  ] as const);
 
   const query = buildRangeAnalyticsQuery({
     timeDimension,
-    includeCountry,
-    includeBrowser,
-    includeOs
+    countryDimension,
+    cityDimension,
+    browserDimension,
+    osDimension
   });
 
   const endDate = new Date();
@@ -327,13 +384,13 @@ export async function getScreenerAnalytics() {
       .sort((a, b) => b.visits - a.visits);
   }
 
-  const countriesMerged = includeCountry
+  const countriesMerged = countryDimension
     ? mergeTopRows(
         payloads7d.flatMap((p) => {
           const z = (p?.data?.viewer?.zones?.[0] ?? {}) as RangeAnalyticsZone;
           return (
             z.countries?.map((row) => ({
-              name: row.dimensions.clientCountryName ?? "Unknown",
+              name: row.dimensions[countryDimension] ?? "Unknown",
               visits: row.sum.visits,
               requests: row.count
             })) ?? []
@@ -342,13 +399,28 @@ export async function getScreenerAnalytics() {
       ).slice(0, 50)
     : [];
 
-  const browsersMerged = includeBrowser
+  const citiesMerged = cityDimension
+    ? mergeTopRows(
+        payloads7d.flatMap((p) => {
+          const z = (p?.data?.viewer?.zones?.[0] ?? {}) as RangeAnalyticsZone;
+          return (
+            z.cities?.map((row) => ({
+              name: row.dimensions[cityDimension] ?? "Unknown",
+              visits: row.sum.visits,
+              requests: row.count
+            })) ?? []
+          );
+        })
+      ).slice(0, 50)
+    : [];
+
+  const browsersMerged = browserDimension
     ? mergeTopRows(
         payloads7d.flatMap((p) => {
           const z = (p?.data?.viewer?.zones?.[0] ?? {}) as RangeAnalyticsZone;
           return (
             z.browsers?.map((row) => ({
-              name: row.dimensions.clientBrowserName ?? "Unknown",
+              name: row.dimensions[browserDimension] ?? "Unknown",
               visits: row.sum.visits,
               requests: row.count
             })) ?? []
@@ -357,13 +429,13 @@ export async function getScreenerAnalytics() {
       ).slice(0, 20)
     : [];
 
-  const osMerged = includeOs
+  const osMerged = osDimension
     ? mergeTopRows(
         payloads7d.flatMap((p) => {
           const z = (p?.data?.viewer?.zones?.[0] ?? {}) as RangeAnalyticsZone;
           return (
             z.operatingSystems?.map((row) => ({
-              name: row.dimensions.clientOSName ?? "Unknown",
+              name: row.dimensions[osDimension] ?? "Unknown",
               visits: row.sum.visits,
               requests: row.count
             })) ?? []
@@ -395,7 +467,11 @@ export async function getScreenerAnalytics() {
       count: row.requests,
       sum: { visits: row.visits }
     })),
-    cities: [],
+    cities: citiesMerged.map((row) => ({
+      dimensions: { clientCityName: row.name },
+      count: row.requests,
+      sum: { visits: row.visits }
+    })),
     browsers: browsersMerged.map((row) => ({
       dimensions: { clientBrowserName: row.name },
       count: row.requests,
@@ -409,7 +485,13 @@ export async function getScreenerAnalytics() {
     meta: {
       timeDimension,
       supportedDimensions: Array.from(dims),
-      chunks: ranges.length
+      chunks: ranges.length,
+      selectedDimensions: {
+        country: countryDimension,
+        city: cityDimension,
+        browser: browserDimension,
+        os: osDimension
+      }
     }
   };
 }

@@ -113,9 +113,20 @@ export default async function StatsPage() {
           </h1>
           <div className="mt-6 h-px w-40 bg-hud/40 shadow-glow" />
           {data && (
-            <p className="mt-6 text-xs uppercase tracking-[0.25em] text-ice/50">
-              Range 24h / 7d
-            </p>
+            <div className="mt-6 space-y-2">
+              <p className="text-xs uppercase tracking-[0.25em] text-ice/50">
+                Range 24h / 7d
+              </p>
+              {data.meta?.selectedDimensions && (
+                <p className="text-[11px] uppercase tracking-[0.22em] text-ice/40">
+                  Breakdowns:{" "}
+                  {data.meta.selectedDimensions.country ? "Countries" : "Countries (n/a)"} ·{" "}
+                  {data.meta.selectedDimensions.city ? "Cities" : "Cities (n/a)"} ·{" "}
+                  {data.meta.selectedDimensions.browser ? "Browser" : "Browser (n/a)"} ·{" "}
+                  {data.meta.selectedDimensions.os ? "OS" : "OS (n/a)"}
+                </p>
+              )}
+            </div>
           )}
         </div>
       </section>
