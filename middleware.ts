@@ -8,6 +8,19 @@ function isScreenerHost(host: string | null) {
   return host.startsWith("screener.crakhack.com");
 }
 
+function isPublicAsset(pathname: string) {
+  return (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/favicon") ||
+    pathname.startsWith("/robots") ||
+    pathname.startsWith("/sitemap") ||
+    pathname.startsWith("/images") ||
+    pathname.startsWith("/poster-placeholder.svg") ||
+    pathname.startsWith("/noise.svg") ||
+    pathname.startsWith("/ambient-still.jpg")
+  );
+}
+
 export function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const host = request.headers.get("host");
@@ -16,13 +29,17 @@ export function middleware(request: NextRequest) {
   const isLoginPath = pathname.startsWith("/crakhackscreener666/login");
   const isAuthPath = pathname.startsWith("/crakhackscreener666/auth");
 
+  if (isScreenerHost(host) && isPublicAsset(pathname)) {
+    return NextResponse.next();
+  }
+
   if (isScreenerHost(host) && (pathname === "/" || pathname === "")) {
     const url = request.nextUrl.clone();
     url.pathname = "/crakhackscreener666";
     return NextResponse.rewrite(url);
   }
 
-  if (isScreenerHost(host) && !isScreenerPath) {
+  if (isScreenerHost(host) && !isScreenerPath && !isPublicAsset(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = `/crakhackscreener666${pathname}`;
     return NextResponse.rewrite(url);
