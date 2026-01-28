@@ -30,16 +30,23 @@ export function middleware(request: NextRequest) {
   }
 
   const hostIsScreener = isScreenerHost(host);
-  const needsScreenerRewrite = hostIsScreener && pathname === "/";
+  const isScreenerPath = pathname.startsWith("/crakhackscreener666");
+  const isLoginPath = pathname.startsWith("/crakhackscreener666/login");
+  const isAuthPath = pathname.startsWith("/crakhackscreener666/auth");
+  const needsScreenerRewrite =
+    hostIsScreener && !isPublicAsset(pathname) && !isScreenerPath;
   const effectivePath = needsScreenerRewrite
     ? "/crakhackscreener666"
     : pathname;
 
-  const isScreenerPath = effectivePath.startsWith("/crakhackscreener666");
-  const isLoginPath = effectivePath.startsWith("/crakhackscreener666/login");
-  const isAuthPath = effectivePath.startsWith("/crakhackscreener666/auth");
+  const effectiveIsLoginPath = effectivePath.startsWith(
+    "/crakhackscreener666/login"
+  );
+  const effectiveIsAuthPath = effectivePath.startsWith(
+    "/crakhackscreener666/auth"
+  );
 
-  if (!isScreenerPath || isLoginPath || isAuthPath) {
+  if (!effectivePath.startsWith("/crakhackscreener666") || effectiveIsLoginPath || effectiveIsAuthPath) {
     if (needsScreenerRewrite) {
       const url = request.nextUrl.clone();
       url.pathname = effectivePath;
