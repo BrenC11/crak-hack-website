@@ -12,6 +12,7 @@ body {
 }
 
 .ambient-still {
+  background-color: #050608;
   background-image:
     radial-gradient(circle at 20% 20%, rgba(69, 217, 255, 0.18), transparent 48%),
     linear-gradient(180deg, rgba(5, 6, 8, 0.88) 0%, rgba(5, 6, 8, 0.84) 55%, rgba(5, 6, 8, 0.95) 100%),
@@ -65,4 +66,20 @@ body {
   background-image: url('/noise.svg');
   mix-blend-mode: soft-light;
   opacity: 0.18;
+}
+
+/* Safari stability: blend modes can intermittently render as a white page. */
+@supports (-webkit-touch-callout: none) {
+  .ambient-still {
+    background-blend-mode: normal;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(69, 217, 255, 0.16), transparent 52%),
+      linear-gradient(180deg, rgba(5, 6, 8, 0.92) 0%, rgba(5, 6, 8, 0.92) 100%),
+      url("/ambient-still.jpg");
+  }
+
+  .noise-overlay {
+    mix-blend-mode: normal;
+    opacity: 0.12;
+  }
 }

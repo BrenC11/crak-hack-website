@@ -18,7 +18,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="bg-void">
+    <html
+      lang="en"
+      className="bg-void"
+      // Fallback background in case CSS is blocked/not yet loaded.
+      style={{ backgroundColor: "#050608" }}
+    >
       <body
         className={spaceGrotesk.className}
         // Fallback colors in case CSS is blocked/not yet loaded.
