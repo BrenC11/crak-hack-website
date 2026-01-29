@@ -66,9 +66,6 @@ export default function Hero() {
               <p className="text-xs uppercase tracking-[0.3em] text-hud/80">
                 Official Poster
               </p>
-              <p className="mt-2 text-sm text-ice/60">
-                CRak Hack (2026)
-              </p>
             </div>
           </div>
         </motion.div>
