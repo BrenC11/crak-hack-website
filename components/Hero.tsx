@@ -65,6 +65,33 @@ export default function Hero() {
           </div>
         </motion.div>
       </div>
+
+      <motion.a
+        href="#film-description"
+        aria-label="Scroll down"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.9, y: [0, 8, 0] }}
+        transition={{ duration: 1.8, delay: 1.0, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute bottom-8 left-1/2 z-10 flex -translate-x-1/2 items-center justify-center rounded-full border border-hud/30 bg-black/40 px-4 py-3 text-ice/70 shadow-glow backdrop-blur-sm transition hover:border-hud/60 hover:text-ice"
+      >
+        <span className="sr-only">Scroll down</span>
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 20 20"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path
+            d="M5.5 7.5L10 12l4.5-4.5"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </motion.a>
     </section>
   );
 }
