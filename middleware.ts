@@ -29,6 +29,9 @@ export function middleware(request: NextRequest) {
   const { pathname } = url;
   const host = request.headers.get("host");
 
+  const isProtectedScreenerPath =
+    pathname.startsWith("/crakhackscreener666") || pathname.startsWith("/screener");
+
   // 1. Always allow public assets
   if (isPublicAsset(pathname)) {
     return NextResponse.next();
@@ -48,14 +51,16 @@ export function middleware(request: NextRequest) {
   }
 
   // 3. Only protect the screener paths
-  if (!pathname.startsWith("/crakhackscreener666")) {
+  if (!isProtectedScreenerPath) {
     return NextResponse.next();
   }
 
   // 4. Allow login/auth routes
   if (
     pathname.startsWith("/crakhackscreener666/login") ||
-    pathname.startsWith("/crakhackscreener666/auth")
+    pathname.startsWith("/crakhackscreener666/auth") ||
+    pathname.startsWith("/screener/login") ||
+    pathname.startsWith("/screener/auth")
   ) {
     return NextResponse.next();
   }
@@ -67,7 +72,7 @@ export function middleware(request: NextRequest) {
   }
 
   // 6. Redirect to login
-  url.pathname = "/crakhackscreener666/login";
+  url.pathname = pathname.startsWith("/screener") ? "/screener/login" : "/crakhackscreener666/login";
   url.search = `?next=${encodeURIComponent(pathname)}`;
   return NextResponse.redirect(url);
 }
