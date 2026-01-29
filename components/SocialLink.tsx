@@ -13,7 +13,7 @@ export default function SocialLink() {
         className="mx-auto flex max-w-3xl justify-center"
       >
         <a
-          href="https://instagram.com"
+          href="https://www.instagram.com/crakhackfilm"
           target="_blank"
           rel="noreferrer"
           className="group flex items-center gap-4 rounded-full border border-hud/40 bg-black/50 px-8 py-4 text-sm uppercase tracking-[0.3em] text-ice/80 transition duration-300 hover:border-hud/70 hover:text-ice"
