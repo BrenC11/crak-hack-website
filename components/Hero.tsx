@@ -1,6 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
+
+import posterImage from "@/images/Crak Hack Poster - 26 SMALL.jpg";
 
 export default function Hero() {
   return (
@@ -49,14 +52,21 @@ export default function Hero() {
           className="mt-12 h-[420px] w-full max-w-md rounded-2xl border border-hud/20 bg-black/40 shadow-glow lg:mt-0"
         >
           <div className="relative h-full overflow-hidden rounded-2xl">
-            <div className="poster-frame absolute inset-0" />
+            <Image
+              src={posterImage}
+              alt="CRAK HACK film poster"
+              fill
+              priority
+              sizes="(min-width: 1024px) 28rem, 100vw"
+              className="object-cover"
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/70" />
             <div className="absolute inset-x-6 bottom-8">
               <p className="text-xs uppercase tracking-[0.3em] text-hud/80">
-                Poster Placeholder
+                Official Poster
               </p>
               <p className="mt-2 text-sm text-ice/60">
-                A static frame for a future nightmare.
+                CRak Hack (2026)
               </p>
             </div>
           </div>
