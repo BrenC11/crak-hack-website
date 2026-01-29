@@ -49,9 +49,10 @@ export default function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.2, delay: 0.2, ease: "easeOut" }}
-          className="mt-12 h-[420px] w-full max-w-md rounded-2xl border border-hud/20 bg-black/40 shadow-glow lg:mt-0"
+          className="mt-12 w-full max-w-md overflow-hidden rounded-2xl border border-hud/20 bg-black/40 shadow-glow lg:mt-0"
+          style={{ aspectRatio: "2 / 3" }}
         >
-          <div className="relative h-full overflow-hidden rounded-2xl">
+          <div className="relative h-full w-full">
             <Image
               src={posterImage}
               alt="CRAK HACK film poster"

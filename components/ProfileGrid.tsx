@@ -7,7 +7,7 @@ const profiles = [
   {
     name: "Brendan Cleaves",
     role: "Writer / Director",
-    bio: "Profile loading…",
+    bio: "Brendan Cleaves is a UK-based writer-director known for genre-blending stories where the ordinary tips into the surreal. Starting out filming Camden’s music scene, he moved into directing, writing and composing his own work, earning a UK Music Video Award nomination early on. His short ROGER, starring John Bradley (Game of Thrones) and Seann Walsh, helped define his voice: character-driven, tonally offbeat, and slightly unhinged. Across multiple shorts and a documentary, his films have screened at over 150 international festivals, including BAFTA and Academy-qualifying events, with several Méliès d’Argent nominations. His recent projects lean into dark sci-fi and horror-comedy, exploring flawed people, misbehaving technology, and the fine line between funny and deeply unsettling. He is a member of BAFTA and Directors UK.",
     image: "/brendan-cleaves.png"
   },
   {
