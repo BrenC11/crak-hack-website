@@ -28,17 +28,16 @@ export default function ScreenerPage() {
               <div className="absolute right-10 top-10 h-px w-20 bg-hack/60 shadow-hackGlow" />
             </div>
             <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black">
-              <video
-                className="h-full w-full object-cover"
-                controls
-                preload="metadata"
-                poster="/poster-placeholder.svg"
-              >
-                <source
-                  src="https://pub-a1dc0a9d25874e19835fde8b8129f56c.r2.dev/Crack_Hack_H265_1stPass_23-1-25.mp4"
-                  type="video/mp4"
-                />
-              </video>
+              <iframe
+                title="CRAK HACK Screener"
+                src="https://framerate.com/embed/UFVl3vu7"
+                className="absolute inset-0 h-full w-full"
+                style={{ width: "100%" }}
+                frameBorder="0"
+                allow="autoplay; fullscreen; picture-in-picture"
+                allowFullScreen
+                loading="lazy"
+              />
             </div>
           </div>
 
