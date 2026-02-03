@@ -41,8 +41,16 @@ export default function ScreenerPage() {
             </div>
           </div>
 
-          <div className="text-xs uppercase tracking-[0.3em] text-ice/40">
-            Do not share this link.
+          <div className="flex flex-col gap-2 text-xs uppercase tracking-[0.3em] text-ice/40 sm:flex-row sm:items-center sm:justify-between">
+            <span>Do not share this link.</span>
+            <a
+              href="https://youtu.be/fFvuAAQw5b4"
+              target="_blank"
+              rel="noreferrer"
+              className="text-ice/60 transition duration-300 hover:text-ice"
+            >
+              Video not loading? Click here for the mirror link.
+            </a>
           </div>
           <div>
             <a
