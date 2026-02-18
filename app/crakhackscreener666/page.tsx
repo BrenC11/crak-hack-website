@@ -30,7 +30,7 @@ export default function ScreenerPage() {
             <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black">
               <iframe
                 title="CRAK HACK Screener"
-                src="https://framerate.com/embed/9fT3PiD8"
+                src="https://www.youtube.com/embed/fFvuAAQw5b4"
                 className="absolute inset-0 h-full w-full"
                 style={{ width: "100%" }}
                 frameBorder="0"

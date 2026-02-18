@@ -1,6 +1,29 @@
-export const metadata = {
+import type { Metadata } from "next";
+
+import posterImage from "@/images/Crak Hack Poster - 26 SMALL.jpg";
+
+export const metadata: Metadata = {
   title: "CRAK HACK Screener",
-  description: "Private screener for CRAK HACK"
+  description: "Private screener for CRAK HACK",
+  openGraph: {
+    title: "CRAK HACK Screener",
+    description: "Private screener for CRAK HACK",
+    type: "website",
+    images: [
+      {
+        url: posterImage.src,
+        width: posterImage.width,
+        height: posterImage.height,
+        alt: "CRAK HACK film poster"
+      }
+    ]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CRAK HACK Screener",
+    description: "Private screener for CRAK HACK",
+    images: [posterImage.src]
+  }
 };
 
 export default function ScreenerPage() {
@@ -30,7 +53,7 @@ export default function ScreenerPage() {
             <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black">
               <iframe
                 title="CRAK HACK Screener"
-                src="https://framerate.com/embed/9fT3PiD8"
+                src="https://www.youtube.com/embed/fFvuAAQw5b4"
                 className="absolute inset-0 h-full w-full"
                 style={{ width: "100%" }}
                 frameBorder="0"
@@ -49,7 +72,7 @@ export default function ScreenerPage() {
               rel="noreferrer"
               className="text-ice/60 transition duration-300 hover:text-ice"
             >
-              Video not loading? Click here for the mirror link.
+              Open on YouTube
             </a>
           </div>
           <div>
@@ -66,4 +89,3 @@ export default function ScreenerPage() {
     </main>
   );
 }
-

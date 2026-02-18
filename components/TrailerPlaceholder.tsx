@@ -27,7 +27,7 @@ export default function TrailerPlaceholder() {
 
             <div className="relative w-full overflow-hidden rounded-xl bg-black pb-[56.25%] shadow-glow">
               <iframe
-                src="https://framerate.com/embed/35xoNSF6"
+                src="https://www.youtube.com/embed/2Ta2SqKFmSk"
                 title="Trailer"
                 className="absolute inset-0 h-full w-full"
                 frameBorder={0}

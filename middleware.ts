@@ -11,6 +11,12 @@ function isScreenerHost(host: string | null) {
   );
 }
 
+function isPreviewBot(userAgent: string) {
+  return /facebookexternalhit|twitterbot|slackbot|discordbot|whatsapp|telegrambot|linkedinbot|pinterest|embedly|vkshare|applebot|googlebot|bingbot|yandex|duckduckbot/i.test(
+    userAgent
+  );
+}
+
 function isPublicAsset(pathname: string) {
   return (
     pathname.startsWith("/_next") ||
@@ -28,12 +34,18 @@ export function middleware(request: NextRequest) {
   const url = request.nextUrl.clone();
   const { pathname } = url;
   const host = request.headers.get("host");
+  const userAgent = request.headers.get("user-agent") ?? "";
 
   const isProtectedScreenerPath =
     pathname.startsWith("/crakhackscreener666") || pathname.startsWith("/screener");
 
   // 1. Always allow public assets
   if (isPublicAsset(pathname)) {
+    return NextResponse.next();
+  }
+
+  // 1b. Allow link preview bots to read metadata.
+  if (isProtectedScreenerPath && isPreviewBot(userAgent)) {
     return NextResponse.next();
   }
 
