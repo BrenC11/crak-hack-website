@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import CinematicYouTubePlayer from "@/components/CinematicYouTubePlayer";
 
 export default function TrailerPlaceholder() {
   return (
@@ -25,17 +26,11 @@ export default function TrailerPlaceholder() {
               </p>
             </div>
 
-            <div className="relative w-full overflow-hidden rounded-xl bg-black pb-[56.25%] shadow-glow">
-              <iframe
-                src="https://www.youtube.com/embed/2Ta2SqKFmSk"
-                title="Trailer"
-                className="absolute inset-0 h-full w-full"
-                frameBorder={0}
-                allow="autoplay; fullscreen; picture-in-picture"
-                allowFullScreen
-                loading="lazy"
-              />
-            </div>
+            <CinematicYouTubePlayer
+              videoId="2Ta2SqKFmSk"
+              title="Official Trailer"
+              accentLabel="Trailer Channel"
+            />
           </div>
         </div>
       </motion.div>

@@ -1,3 +1,5 @@
+import CinematicYouTubePlayer from "@/components/CinematicYouTubePlayer";
+
 export const metadata = {
   title: "CRAK HACK Screener",
   description: "Private screener for CRAK HACK"
@@ -27,18 +29,11 @@ export default function ScreenerPage() {
               <div className="absolute inset-x-0 bottom-0 h-px bg-hud/30" />
               <div className="absolute right-10 top-10 h-px w-20 bg-hack/60 shadow-hackGlow" />
             </div>
-            <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black">
-              <iframe
-                title="CRAK HACK Screener"
-                src="https://www.youtube.com/embed/fFvuAAQw5b4"
-                className="absolute inset-0 h-full w-full"
-                style={{ width: "100%" }}
-                frameBorder="0"
-                allow="autoplay; fullscreen; picture-in-picture"
-                allowFullScreen
-                loading="lazy"
-              />
-            </div>
+            <CinematicYouTubePlayer
+              videoId="fFvuAAQw5b4"
+              title="CRAK HACK Screener"
+              accentLabel="Secure Screener"
+            />
           </div>
 
           <div className="text-xs uppercase tracking-[0.3em] text-ice/40">
