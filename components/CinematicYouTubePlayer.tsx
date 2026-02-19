@@ -282,7 +282,11 @@ export default function CinematicYouTubePlayer({
       onFocusCapture={showControlsBriefly}
     >
       <div className="pointer-events-none absolute inset-0 z-20 rounded-xl bg-gradient-to-t from-black/70 via-transparent to-black/30" />
-      <div className="pointer-events-none absolute inset-x-6 top-5 z-30 flex items-center justify-between text-[10px] uppercase tracking-[0.24em] text-ice/70">
+      <div
+        className={`pointer-events-none absolute inset-x-6 top-5 z-30 flex items-center justify-between text-[10px] uppercase tracking-[0.24em] text-ice/70 transition duration-300 ${
+          isPlaying ? "opacity-0" : "opacity-100"
+        }`}
+      >
         <span className="rounded-full border border-hud/40 bg-black/40 px-3 py-1">{accentLabel}</span>
         <span className="flex items-center gap-2 rounded-full border border-hud/40 bg-black/40 px-3 py-1">
           <span className={`h-1.5 w-1.5 rounded-full ${isPlaying ? "bg-hack shadow-hackGlow" : "bg-ice/40"}`} />
