@@ -6,6 +6,7 @@ type CinematicYouTubePlayerProps = {
   videoId: string;
   title: string;
   accentLabel?: string;
+  playLabel?: string;
   className?: string;
 };
 
@@ -102,6 +103,7 @@ export default function CinematicYouTubePlayer({
   videoId,
   title,
   accentLabel = "Transmission Feed",
+  playLabel = "Play Film",
   className = ""
 }: CinematicYouTubePlayerProps) {
   const playerHostRef = useRef<HTMLDivElement | null>(null);
@@ -310,7 +312,7 @@ export default function CinematicYouTubePlayer({
           <span className="flex h-7 w-7 items-center justify-center rounded-full border border-hud/60 bg-hack/20 text-hack">
             ▶
           </span>
-          Play Film
+          {playLabel}
         </button>
       </div>
 

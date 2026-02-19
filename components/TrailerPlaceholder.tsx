@@ -30,6 +30,7 @@ export default function TrailerPlaceholder() {
               videoId="2Ta2SqKFmSk"
               title="Official Trailer"
               accentLabel="Trailer Channel"
+              playLabel="Play Trailer"
             />
           </div>
         </div>
