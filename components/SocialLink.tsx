@@ -10,7 +10,7 @@ export default function SocialLink() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.5 }}
         transition={{ duration: 0.9, ease: "easeOut" }}
-        className="mx-auto flex max-w-3xl justify-center"
+        className="mx-auto flex max-w-3xl flex-wrap items-center justify-center gap-4"
       >
         <a
           href="https://www.instagram.com/crakhackfilm"
@@ -37,6 +37,19 @@ export default function SocialLink() {
           </span>
           <span className="h-1.5 w-1.5 rounded-full bg-hack/80 shadow-hackGlow" />
           Instagram
+        </a>
+        <a
+          href="https://www.imdb.com/title/tt39457194/?ref_=nv_sr_srsg_0_tt_4_nm_4_in_0_q_crak%20hack"
+          target="_blank"
+          rel="noreferrer"
+          className="group flex items-center gap-4 rounded-full border border-hud/40 bg-black/50 px-8 py-4 text-sm uppercase tracking-[0.3em] text-ice/80 transition duration-300 hover:border-hud/70 hover:text-ice"
+          aria-label="CRAK HACK on IMDb"
+        >
+          <span className="flex h-10 min-w-10 items-center justify-center rounded-full border border-hud/50 px-2 text-xs font-semibold tracking-[0.08em] text-hud/80 transition duration-300 group-hover:text-hud">
+            IMDb
+          </span>
+          <span className="h-1.5 w-1.5 rounded-full bg-hack/80 shadow-hackGlow" />
+          IMDb
         </a>
       </motion.div>
     </section>
