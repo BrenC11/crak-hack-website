@@ -52,7 +52,7 @@ export default function ScreenerPage() {
               <div className="absolute right-10 top-10 h-px w-20 bg-hack/60 shadow-hackGlow" />
             </div>
             <CinematicYouTubePlayer
-              videoId="fFvuAAQw5b4"
+              videoId="munHI3Ks2a8"
               title="CRAK HACK Screener"
               accentLabel="Secure Screener"
             />
@@ -61,7 +61,7 @@ export default function ScreenerPage() {
           <div className="flex flex-col gap-2 text-xs uppercase tracking-[0.3em] text-ice/40 sm:flex-row sm:items-center sm:justify-between">
             <span>Do not share this link.</span>
             <a
-              href="https://youtu.be/fFvuAAQw5b4"
+              href="https://youtu.be/munHI3Ks2a8"
               target="_blank"
               rel="noreferrer"
               className="text-ice/60 transition duration-300 hover:text-ice"
